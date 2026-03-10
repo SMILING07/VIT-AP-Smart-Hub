@@ -7,6 +7,7 @@ import 'floor_map_screen.dart';
 import 'file_converter_screen.dart';
 import 'vtop_webview_screen.dart';
 import 'cgpa_calculator_screen.dart';
+import 'mess_menu_screen.dart';
 import '../services/github_update_service.dart';
 import '../widgets/update_dialog.dart';
 
@@ -477,6 +478,69 @@ class _DashboardView extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'Calculate your GPA dynamically',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Mess Menu Card
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MessMenuScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.restaurant_menu, color: Colors.orange),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mess Menu',
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).textTheme.titleLarge?.color,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'View your mess menu from Excel',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodySmall?.color,
                             fontSize: 13,
