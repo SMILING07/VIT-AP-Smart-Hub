@@ -8,8 +8,7 @@ import 'file_converter_screen.dart';
 import 'vtop_webview_screen.dart';
 import 'cgpa_calculator_screen.dart';
 import 'mess_menu_screen.dart';
-import '../services/github_update_service.dart';
-import '../widgets/update_dialog.dart';
+import '../services/update_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,10 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkForUpdates() async {
-    final updateService = GitHubUpdateService();
-    final updateInfo = await updateService.checkForUpdate();
-    if (updateInfo != null && mounted) {
-      showUpdateDialog(context, updateInfo);
+    final updateService = UpdateService(
+      configUrl: 'https://raw.githubusercontent.com/DARKSAPRO3x42/VIT-AP-Smart-Hub/main/update_config.json',
+    );
+    if (mounted) {
+      await updateService.checkForUpdates(context);
     }
   }
 
