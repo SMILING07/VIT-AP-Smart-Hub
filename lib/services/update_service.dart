@@ -91,6 +91,14 @@ class UpdateService {
       final status = await Permission.requestInstallPackages.request();
       if (!status.isGranted) {
         debugPrint('Install packages permission denied');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Permission is required to install updates.'),
+            ),
+          );
+        }
+        return;
       }
     }
 
@@ -114,7 +122,12 @@ class UpdateService {
         );
       }
 
-      final dir = await getTemporaryDirectory();
+      Directory? dir;
+      if (Platform.isAndroid) {
+        dir = await getExternalStorageDirectory();
+      }
+      dir ??= await getTemporaryDirectory();
+      
       final savePath = '${dir.path}/app_update.apk';
 
       await _dio.download(apkUrl, savePath);
@@ -126,10 +139,18 @@ class UpdateService {
       final result = await OpenFile.open(savePath);
       if (result.type != ResultType.done) {
         debugPrint('Failed to open file: ${result.message}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Installation failed: ${result.message}')),
+          );
+        }
       }
     } catch (e) {
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog on error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Download failed. Please check your connection.')),
+        );
       }
       debugPrint('Download failed: $e');
     }
