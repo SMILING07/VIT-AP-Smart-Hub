@@ -103,18 +103,31 @@ class UpdateService {
     }
 
     try {
+      final ValueNotifier<double> progressNotifier = ValueNotifier(0.0);
+
       if (context.mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => PopScope(
             canPop: false,
-            child: const AlertDialog(
+            child: AlertDialog(
               content: Row(
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(width: 20),
-                  Text('Downloading update...'),
+                  ValueListenableBuilder<double>(
+                    valueListenable: progressNotifier,
+                    builder: (context, value, child) =>
+                        CircularProgressIndicator(
+                          value: value > 0 ? value : null,
+                        ),
+                  ),
+                  const SizedBox(width: 20),
+                  ValueListenableBuilder<double>(
+                    valueListenable: progressNotifier,
+                    builder: (context, value, child) => Text(
+                      'Downloading: ${(value * 100).toStringAsFixed(0)}%',
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -122,15 +135,27 @@ class UpdateService {
         );
       }
 
-      Directory? dir;
-      if (Platform.isAndroid) {
-        dir = await getExternalStorageDirectory();
-      }
-      dir ??= await getTemporaryDirectory();
-      
-      final savePath = '${dir.path}/app_update.apk';
+      final dir = await getTemporaryDirectory();
 
-      await _dio.download(apkUrl, savePath);
+      final savePath = '${dir.path}/app_update.apk';
+      final file = File(savePath);
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+
+      await _dio.download(
+        apkUrl,
+        savePath,
+        options: Options(
+          receiveTimeout: const Duration(minutes: 5),
+          sendTimeout: const Duration(minutes: 5),
+        ),
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            progressNotifier.value = received / total;
+          }
+        },
+      );
 
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog
@@ -149,7 +174,9 @@ class UpdateService {
       if (context.mounted) {
         Navigator.of(context).pop(); // Close loading dialog on error
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Download failed. Please check your connection.')),
+          const SnackBar(
+            content: Text('Download failed. Please check your connection.'),
+          ),
         );
       }
       debugPrint('Download failed: $e');
