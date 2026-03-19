@@ -89,12 +89,12 @@ switch ($choice) {
         
         Write-Host ""
         Write-Host "Starting Shorebird Major Release build..." -ForegroundColor Magenta
-        C:\Users\tejas\.shorebird\bin\shorebird.bat release android
+        C:\Users\tejas\.shorebird\bin\shorebird.bat release android --artifact apk
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Success: Release finished successfully! The new version is $newVersionString." -ForegroundColor Green
             Write-Host "Please upload this APK to your GitHub Release page:" -ForegroundColor Yellow
-            Write-Host " -> build\app\outputs\apk\release\app-release.apk" -ForegroundColor Yellow
+            Write-Host " -> build\app\outputs\flutter-apk\app-release.apk" -ForegroundColor Yellow
         } else {
             Write-Host "Error: Shorebird release failed." -ForegroundColor Red
         }
