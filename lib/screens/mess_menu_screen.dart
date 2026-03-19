@@ -161,8 +161,6 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
     );
   }
 
-
-
   Widget _buildMainContent(bool isDark) {
     return Column(
       children: [
@@ -171,15 +169,21 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             padding: const EdgeInsets.all(12.0),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurfaceColor,
+              color: isDark
+                  ? AppTheme.surfaceColor
+                  : AppTheme.lightSurfaceColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: (isDark ? AppTheme.secondaryColor : AppTheme.primaryColor).withValues(alpha: 0.3),
+                color:
+                    (isDark ? AppTheme.secondaryColor : AppTheme.primaryColor)
+                        .withValues(alpha: 0.3),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: (isDark ? AppTheme.secondaryColor : AppTheme.primaryColor).withValues(alpha: 0.1),
+                  color:
+                      (isDark ? AppTheme.secondaryColor : AppTheme.primaryColor)
+                          .withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -193,7 +197,11 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                     color: AppTheme.successColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check_circle, color: AppTheme.successColor, size: 20),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: AppTheme.successColor,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -204,12 +212,17 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                         'Excel Data Loaded',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? AppTheme.textSecondaryColor : AppTheme.lightTextSecondaryColor,
+                          color: isDark
+                              ? AppTheme.textSecondaryColor
+                              : AppTheme.lightTextSecondaryColor,
                         ),
                       ),
                       Text(
                         _fileName!,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -218,9 +231,11 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                 IconButton(
                   icon: Icon(Icons.upload_file),
                   onPressed: _pickAndParseExcelFile,
-                  color: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+                  color: isDark
+                      ? AppTheme.secondaryColor
+                      : AppTheme.primaryColor,
                   tooltip: 'Upload new file',
-                )
+                ),
               ],
             ),
           ),
@@ -247,9 +262,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       decoration: BoxDecoration(
         color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black12,
-        ),
+        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
@@ -275,7 +288,9 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppTheme.textColor : AppTheme.lightTextColor,
+                    color: isDark
+                        ? AppTheme.textColor
+                        : AppTheme.lightTextColor,
                   ),
                 ),
               ),
@@ -297,7 +312,9 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                     '${entry.key + 1}.',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+                      color: isDark
+                          ? AppTheme.secondaryColor
+                          : AppTheme.primaryColor,
                       fontSize: 14,
                     ),
                   ),
@@ -320,7 +337,6 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       ),
     );
   }
-
 
   Widget _buildMenuTable(bool isDark) {
     if (_menuData.isEmpty) return const SizedBox.shrink();
@@ -348,122 +364,120 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       ),
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
-            color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurfaceColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-            border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+        color: isDark ? AppTheme.surfaceColor : AppTheme.lightSurfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+        ],
+        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Scrollbar(
+          thumbVisibility: true,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            physics: const BouncingScrollPhysics(),
             child: Scrollbar(
               thumbVisibility: true,
               child: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
+                scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Custom Header Row
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: AppTheme.primaryGradient,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Custom Header Row
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                          child: Row(
-                            children: paddedHeader.map((header) {
-                              return _buildCell(
-                                header?.toString().toUpperCase() ?? '',
-                                isHeader: true,
-                                isDark: isDark,
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        // Custom Data Rows
-                        ...dataRows.asMap().entries.map((entry) {
-                          int rowIndex = entry.key;
-                          List<dynamic> row = entry.value;
+                        ],
+                      ),
+                      child: Row(
+                        children: paddedHeader.map((header) {
+                          return _buildCell(
+                            header?.toString().toUpperCase() ?? '',
+                            isHeader: true,
+                            isDark: isDark,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    // Custom Data Rows
+                    ...dataRows.asMap().entries.map((entry) {
+                      int rowIndex = entry.key;
+                      List<dynamic> row = entry.value;
 
-                          List<dynamic> paddedRow = List.from(row);
-                          while (paddedRow.length < maxCols) {
-                            paddedRow.add('');
-                          }
+                      List<dynamic> paddedRow = List.from(row);
+                      while (paddedRow.length < maxCols) {
+                        paddedRow.add('');
+                      }
 
-                          bool isEvenRow = rowIndex % 2 == 0;
-                          Color rowColor = isDark
-                              ? (isEvenRow
-                                    ? AppTheme.backgroundColor.withValues(
-                                        alpha: 0.4,
-                                      )
-                                    : AppTheme.surfaceColor)
-                              : (isEvenRow
-                                    ? AppTheme.lightBackgroundColor
-                                    : AppTheme.lightSurfaceColor);
+                      bool isEvenRow = rowIndex % 2 == 0;
+                      Color rowColor = isDark
+                          ? (isEvenRow
+                                ? AppTheme.backgroundColor.withValues(
+                                    alpha: 0.4,
+                                  )
+                                : AppTheme.surfaceColor)
+                          : (isEvenRow
+                                ? AppTheme.lightBackgroundColor
+                                : AppTheme.lightSurfaceColor);
 
-                          return Material(
-                            color: rowColor,
-                            child: InkWell(
-                              hoverColor:
-                                  (isDark
-                                          ? AppTheme.secondaryColor
-                                          : AppTheme.primaryColor)
-                                      .withValues(alpha: 0.1),
-                              splashColor:
-                                  (isDark
-                                          ? AppTheme.secondaryColor
-                                          : AppTheme.primaryColor)
-                                      .withValues(alpha: 0.2),
-                              onTap: () {},
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: paddedRow.map((cell) {
-                                    return _buildCell(
-                                      cell?.toString() ?? '',
-                                      isHeader: false,
-                                      isDark: isDark,
-                                    );
-                                  }).toList(),
+                      return Material(
+                        color: rowColor,
+                        child: InkWell(
+                          hoverColor:
+                              (isDark
+                                      ? AppTheme.secondaryColor
+                                      : AppTheme.primaryColor)
+                                  .withValues(alpha: 0.1),
+                          splashColor:
+                              (isDark
+                                      ? AppTheme.secondaryColor
+                                      : AppTheme.primaryColor)
+                                  .withValues(alpha: 0.2),
+                          onTap: () {},
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.black.withValues(alpha: 0.05),
                                 ),
                               ),
                             ),
-                          );
-                        }),
-                        const SizedBox(height: 8), // Bottom padding
-                      ],
-                    ),
-                  ),
+                            child: Row(
+                              children: paddedRow.map((cell) {
+                                return _buildCell(
+                                  cell?.toString() ?? '',
+                                  isHeader: false,
+                                  isDark: isDark,
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8), // Bottom padding
+                  ],
                 ),
               ),
             ),
           ),
+        ),
+      ),
     );
   }
 

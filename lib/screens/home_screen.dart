@@ -37,7 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkForUpdates() async {
     final updateService = UpdateService(
-      configUrl: 'https://raw.githubusercontent.com/DARKSAPRO3x42/VIT-AP-Smart-Hub/main/update_config.json',
+      configUrl:
+          'https://raw.githubusercontent.com/DARKSAPRO3x42/VIT-AP-Smart-Hub/main/update_config.json',
     );
     if (mounted) {
       await updateService.checkForUpdates(context);
@@ -501,9 +502,7 @@ class _DashboardView extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const MessMenuScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const MessMenuScreen()),
               );
             },
             child: Container(
@@ -521,7 +520,10 @@ class _DashboardView extends StatelessWidget {
                       color: Colors.orange.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.restaurant_menu, color: Colors.orange),
+                    child: const Icon(
+                      Icons.restaurant_menu,
+                      color: Colors.orange,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(

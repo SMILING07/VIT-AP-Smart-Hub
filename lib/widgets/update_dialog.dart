@@ -29,10 +29,7 @@ class UpdateDialog extends StatelessWidget {
               onPressed: onLater ?? () => Navigator.of(context).pop(),
               child: const Text('Later'),
             ),
-          ElevatedButton(
-            onPressed: onUpdate,
-            child: const Text('Update'),
-          ),
+          ElevatedButton(onPressed: onUpdate, child: const Text('Update')),
         ],
       ),
     );
