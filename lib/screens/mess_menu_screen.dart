@@ -148,25 +148,45 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mess Menu'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _menuData.isEmpty
-          ? _buildEmptyState(isDark)
-          : _buildMainContent(isDark),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _pickAndParseExcelFile,
-        icon: const Icon(Icons.upload_file),
-        label: Text(_menuData.isEmpty ? 'Upload Menu (.xlsx)' : 'Change Menu'),
-        backgroundColor: isDark
-            ? AppTheme.secondaryColor
-            : AppTheme.primaryColor,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Mess Menu'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: const [],
+          bottom: TabBar(
+            indicatorColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+            labelColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+            unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
+            tabs: const [
+              Tab(text: 'Mess Menu'),
+              Tab(text: 'Night Mess'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              body: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _menuData.isEmpty
+                  ? _buildEmptyState(isDark)
+                  : _buildMainContent(isDark),
+              floatingActionButton: FloatingActionButton.extended(
+                onPressed: _pickAndParseExcelFile,
+                icon: const Icon(Icons.upload_file),
+                label: Text(_menuData.isEmpty ? 'Upload Menu (.xlsx)' : 'Change Menu'),
+                backgroundColor: isDark
+                    ? AppTheme.secondaryColor
+                    : AppTheme.primaryColor,
+              ),
+            ),
+            const NightMessView(),
+          ],
+        ),
       ),
     );
   }
@@ -534,6 +554,152 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
           letterSpacing: isHeader ? 0.5 : 0,
         ),
         textAlign: isHeader ? TextAlign.center : TextAlign.left,
+      ),
+    );
+  }
+}
+
+class NightMessView extends StatefulWidget {
+  const NightMessView({super.key});
+
+  @override
+  State<NightMessView> createState() => _NightMessViewState();
+}
+
+class _NightMessViewState extends State<NightMessView> {
+  String? _imagePath;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedImage();
+  }
+
+  Future<void> _loadSavedImage() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final File extFile = File('${directory.path}/night_mess_ext.txt');
+      if (await extFile.exists()) {
+        String ext = await extFile.readAsString();
+        final File imageFile = File('${directory.path}/night_mess_image.$ext');
+        if (await imageFile.exists()) {
+          setState(() {
+            _imagePath = imageFile.path;
+          });
+        }
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickAndSaveImage() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _isLoading = true;
+        });
+
+        String sourcePath = result.files.single.path!;
+        String ext = result.files.single.extension ?? 'jpg';
+        
+        final directory = await getApplicationDocumentsDirectory();
+        final File destinationFile = File('${directory.path}/night_mess_image.$ext');
+        final File extFile = File('${directory.path}/night_mess_ext.txt');
+        
+        await File(sourcePath).copy(destinationFile.path);
+        await extFile.writeAsString(ext);
+        
+        if (mounted) {
+          setState(() {
+            _imagePath = destinationFile.path;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _imagePath == null
+              ? _buildEmptyState(isDark)
+              : _buildImageContent(isDark),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _pickAndSaveImage,
+        icon: const Icon(Icons.add_photo_alternate),
+        label: Text(_imagePath == null ? 'Upload Image' : 'Change Image'),
+        backgroundColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.image_not_supported,
+            size: 80,
+            color: isDark ? Colors.white24 : Colors.black26,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Night Mess Menu',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white54 : Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Upload an image of the night mess menu',
+            style: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageContent(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 80.0), // Padding for FAB
+      child: InteractiveViewer(
+        panEnabled: true,
+        boundaryMargin: const EdgeInsets.all(20),
+        minScale: 0.5,
+        maxScale: 4.0,
+        child: Center(
+          child: Image.file(
+            File(_imagePath!),
+            fit: BoxFit.contain,
+          ),
+        ),
       ),
     );
   }
