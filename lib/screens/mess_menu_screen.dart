@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
+import 'package:path_provider/path_provider.dart';
 import '../utils/app_theme.dart';
 
 class MessMenuScreen extends StatefulWidget {
@@ -14,8 +15,96 @@ class MessMenuScreen extends StatefulWidget {
 class _MessMenuScreenState extends State<MessMenuScreen> {
   List<List<dynamic>> _menuData = [];
   List<String> _instructions = [];
-  bool _isLoading = false;
+  bool _isLoading = true;
   String? _fileName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedMenu();
+  }
+
+  Future<void> _loadSavedMenu() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final File file = File('${directory.path}/saved_mess_menu.xlsx');
+      final File nameFile = File('${directory.path}/saved_mess_menu_name.txt');
+      
+      if (await file.exists()) {
+        String savedName = 'saved_mess_menu.xlsx';
+        if (await nameFile.exists()) {
+          savedName = await nameFile.readAsString();
+        }
+        await _parseExcelFile(file.path, savedName);
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _parseExcelFile(String path, String fileName) async {
+    try {
+      var bytes = File(path).readAsBytesSync();
+      var decoder = SpreadsheetDecoder.decodeBytes(bytes);
+
+      List<List<dynamic>> extractedData = [];
+      List<String> extractedInstructions = [];
+      bool isInstructionsSection = false;
+
+      if (decoder.tables.keys.isNotEmpty) {
+        String sheetName = decoder.tables.keys.first;
+        var table = decoder.tables[sheetName];
+
+        if (table != null) {
+          for (var row in table.rows) {
+            if (row.any((element) => element != null && element.toString().trim().isNotEmpty)) {
+              String firstCellStr = row.first?.toString().trim().toUpperCase() ?? '';
+              if (firstCellStr.contains('MESS SERVICE INSTRUCTIONS') || firstCellStr.contains('INSTRUCTIONS:')) {
+                isInstructionsSection = true;
+                continue;
+              }
+
+              if (isInstructionsSection) {
+                String instructionLine = row.where((e) => e != null && e.toString().trim().isNotEmpty).map((e) => e.toString().trim()).join(' ');
+                if (instructionLine.isNotEmpty) {
+                  extractedInstructions.add(instructionLine);
+                }
+              } else {
+                extractedData.add(row);
+              }
+            }
+          }
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _fileName = fileName;
+          _menuData = extractedData;
+          _instructions = extractedInstructions;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error parsing Excel file: $e')));
+        setState(() {
+          _isLoading = false;
+          _fileName = null;
+        });
+      }
+    }
+  }
 
   Future<void> _pickAndParseExcelFile() async {
     try {
@@ -25,76 +114,34 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       );
 
       if (result != null && result.files.single.path != null) {
-        setState(() {
-          _isLoading = true;
-          _fileName = result.files.single.name;
-          _menuData = [];
-          _instructions = [];
-        });
-
-        String path = result.files.single.path!;
-        var bytes = File(path).readAsBytesSync();
-        var decoder = SpreadsheetDecoder.decodeBytes(bytes);
-
-        List<List<dynamic>> extractedData = [];
-        List<String> extractedInstructions = [];
-        bool isInstructionsSection = false;
-
-        // Typically mess menus are on the first sheet, or we take the first available
-        if (decoder.tables.keys.isNotEmpty) {
-          String sheetName = decoder.tables.keys.first;
-          var table = decoder.tables[sheetName];
-
-          if (table != null) {
-            for (var row in table.rows) {
-              // Check if row is not completely empty
-              if (row.any(
-                (element) =>
-                    element != null && element.toString().trim().isNotEmpty,
-              )) {
-                // Identify the start of the instructions block
-                String firstCellStr =
-                    row.first?.toString().trim().toUpperCase() ?? '';
-                if (firstCellStr.contains('MESS SERVICE INSTRUCTIONS') ||
-                    firstCellStr.contains('INSTRUCTIONS:')) {
-                  isInstructionsSection = true;
-                  continue; // Skip the header row itself for instructions
-                }
-
-                if (isInstructionsSection) {
-                  // Extract all non-empty text from the row and join as an instruction line
-                  String instructionLine = row
-                      .where((e) => e != null && e.toString().trim().isNotEmpty)
-                      .map((e) => e.toString().trim())
-                      .join(' ');
-
-                  if (instructionLine.isNotEmpty) {
-                    extractedInstructions.add(instructionLine);
-                  }
-                } else {
-                  extractedData.add(row);
-                }
-              }
-            }
-          }
+        if (mounted) {
+          setState(() {
+            _isLoading = true;
+            _menuData = [];
+            _instructions = [];
+          });
         }
 
-        setState(() {
-          _menuData = extractedData;
-          _instructions = extractedInstructions;
-          _isLoading = false;
-        });
+        String sourcePath = result.files.single.path!;
+        String fileName = result.files.single.name;
+        
+        final directory = await getApplicationDocumentsDirectory();
+        final File destinationFile = File('${directory.path}/saved_mess_menu.xlsx');
+        final File nameFile = File('${directory.path}/saved_mess_menu_name.txt');
+        
+        await File(sourcePath).copy(destinationFile.path);
+        await nameFile.writeAsString(fileName);
+        
+        await _parseExcelFile(destinationFile.path, fileName);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error parsing Excel file: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        setState(() {
+          _isLoading = false;
+          _fileName = null;
+        });
       }
-      setState(() {
-        _isLoading = false;
-        _fileName = null;
-      });
     }
   }
 
@@ -106,29 +153,21 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         title: const Text('Mess Menu'),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.file_upload),
-            onPressed: _pickAndParseExcelFile,
-            tooltip: 'Upload Excel file',
-          ),
-        ],
+        actions: const [],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _menuData.isEmpty
           ? _buildEmptyState(isDark)
           : _buildMainContent(isDark),
-      floatingActionButton: _menuData.isEmpty
-          ? FloatingActionButton.extended(
-              onPressed: _pickAndParseExcelFile,
-              icon: const Icon(Icons.upload_file),
-              label: const Text('Upload Menu (.xlsx)'),
-              backgroundColor: isDark
-                  ? AppTheme.secondaryColor
-                  : AppTheme.primaryColor,
-            )
-          : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _pickAndParseExcelFile,
+        icon: const Icon(Icons.upload_file),
+        label: Text(_menuData.isEmpty ? 'Upload Menu (.xlsx)' : 'Change Menu'),
+        backgroundColor: isDark
+            ? AppTheme.secondaryColor
+            : AppTheme.primaryColor,
+      ),
     );
   }
 
@@ -227,14 +266,6 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                       ),
                     ],
                   ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.upload_file),
-                  onPressed: _pickAndParseExcelFile,
-                  color: isDark
-                      ? AppTheme.secondaryColor
-                      : AppTheme.primaryColor,
-                  tooltip: 'Upload new file',
                 ),
               ],
             ),
