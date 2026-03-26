@@ -68,11 +68,14 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
     return [];
   }
 
+  // Normalize a string by stripping Windows-style \r characters.
+  String _normalizeString(String s) => s.replaceAll('\r', '');
+
   String _flattenCell(dynamic cell) {
     if (cell is List) {
-      return cell.join(', ');
+      return _normalizeString(cell.map((e) => e?.toString() ?? '').join(', '));
     }
-    return cell?.toString() ?? '';
+    return _normalizeString(cell?.toString() ?? '');
   }
 
   Future<void> _parseFile(
@@ -158,10 +161,12 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
           bool hasMealCol = row.any(
             (element) =>
                 element != null &&
-                element.toString().toUpperCase().contains("BREAKFAST"),
+                _normalizeString(
+                  element.toString(),
+                ).toUpperCase().contains("BREAKFAST"),
           );
           if (!hasMealCol) {
-            continue; // Skip junk title rows natively dumped by Excel before the table starts
+            continue;
           } else {
             reachedTableSchema = true;
           }
@@ -171,7 +176,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
             (firstCellStr.contains('MESS SERVICE INSTRUCTIONS') ||
                 firstCellStr.contains('INSTRUCTIONS:'))) {
           foundInstructions = true;
-          String cellData = row.first.toString();
+          String cellData = _normalizeString(row.first.toString());
           if (cellData.contains('\n')) {
             var lines = cellData
                 .split('\n')
@@ -603,7 +608,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         final rawCell = colIndex < validTodayRow.length
             ? validTodayRow[colIndex]
             : null;
-        final rawStr = rawCell?.toString().trim() ?? '';
+        final rawStr = _normalizeString(rawCell?.toString().trim() ?? '');
         final displayItems = rawStr.isEmpty
             ? 'Not specified'
             : rawStr
