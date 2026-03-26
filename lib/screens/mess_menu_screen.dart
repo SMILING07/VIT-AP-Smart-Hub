@@ -217,6 +217,37 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       extractedData = finalData;
       extractedInstructions = finalInstructions;
 
+      // Merge sparse rows: if the first cell (date) of a data row is empty,
+      // it is a continuation of the previous date row. Append each non-empty
+      // cell value to the corresponding column in the previous row.
+      if (extractedData.length > 1) {
+        // First row is the header — start merging from index 1.
+        final headerLength = extractedData.first.length;
+        List<List<dynamic>> mergedData = [extractedData.first];
+        for (int i = 1; i < extractedData.length; i++) {
+          final row = extractedData[i];
+          final firstCell = row.isNotEmpty
+              ? _normalizeString(row.first?.toString().trim() ?? '')
+              : '';
+          if (firstCell.isEmpty && mergedData.length > 1) {
+            // Continuation row — append non-empty cells to the previous row.
+            final prev = mergedData.last;
+            for (int j = 1; j < row.length && j < headerLength; j++) {
+              final cell = _normalizeString(row[j]?.toString().trim() ?? '');
+              if (cell.isNotEmpty) {
+                final existing = _normalizeString(
+                  prev[j]?.toString().trim() ?? '',
+                );
+                prev[j] = existing.isEmpty ? cell : '$existing, $cell';
+              }
+            }
+          } else {
+            mergedData.add(List<dynamic>.from(row));
+          }
+        }
+        extractedData = mergedData;
+      }
+
       if (mounted) {
         setState(() {
           _menuData = extractedData;
