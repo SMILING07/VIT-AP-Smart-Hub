@@ -89,7 +89,7 @@ switch ($choice) {
         
         Write-Host ""
         Write-Host "Starting Shorebird Major Release build..." -ForegroundColor Magenta
-        C:\Users\tejas\.shorebird\bin\shorebird.bat release android --artifact apk --no-tree-shake-icons
+        C:\Users\tejas\.shorebird\bin\shorebird.bat release android --artifact apk
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Success: Release finished successfully! The new version is $newVersionString." -ForegroundColor Green
