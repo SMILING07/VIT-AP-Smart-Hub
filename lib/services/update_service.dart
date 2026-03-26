@@ -123,20 +123,43 @@ class UpdateService {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Big circular indicator with % in the centre
                   ValueListenableBuilder<int>(
                     valueListenable: totalNotifier,
                     builder: (context, total, _) => ValueListenableBuilder<int>(
                       valueListenable: receivedNotifier,
                       builder: (context, received, _) {
                         final progress = total > 0 ? received / total : null;
-                        return LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 6,
+                        final pctLabel = total > 0
+                            ? '${((received / total) * 100).toStringAsFixed(0)}%'
+                            : '...';
+                        return SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              CircularProgressIndicator(
+                                value: progress,
+                                strokeWidth: 6,
+                              ),
+                              Center(
+                                child: Text(
+                                  pctLabel,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // MB received / speed / ETA
                   ValueListenableBuilder<int>(
                     valueListenable: totalNotifier,
                     builder: (context, total, _) => ValueListenableBuilder<int>(
@@ -155,29 +178,27 @@ class UpdateService {
                                         ? (total / (1024 * 1024))
                                               .toStringAsFixed(1)
                                         : null;
-                                    final pct = total > 0
-                                        ? ' (${((received / total) * 100).toStringAsFixed(0)}%)'
-                                        : '';
+                                    final sizeStr = totalMb != null
+                                        ? '$receivedMb / $totalMb MB'
+                                        : '$receivedMb MB';
                                     final speedStr = speed > 0
-                                        ? '  •  ${speed.toStringAsFixed(1)} MB/s'
-                                        : '';
+                                        ? '${speed.toStringAsFixed(1)} MB/s'
+                                        : null;
                                     final etaStr = eta > 0
-                                        ? '  •  ETA ${eta}s'
-                                        : '';
+                                        ? 'ETA ${eta}s'
+                                        : null;
                                     return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          totalMb != null
-                                              ? '$receivedMb / $totalMb MB$pct'
-                                              : '$receivedMb MB downloaded',
+                                          sizeStr,
                                           style: const TextStyle(fontSize: 13),
                                         ),
-                                        if (speedStr.isNotEmpty ||
-                                            etaStr.isNotEmpty)
+                                        if (speedStr != null || etaStr != null)
                                           Text(
-                                            '${speedStr.trim()}$etaStr'.trim(),
+                                            [
+                                              speedStr,
+                                              etaStr,
+                                            ].whereType<String>().join('  •  '),
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,
