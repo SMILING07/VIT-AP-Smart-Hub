@@ -33,7 +33,7 @@ switch ($choice) {
     "2" {
         Write-Host ""
         Write-Host "Starting Shorebird OTA Patch deployment..." -ForegroundColor Magenta
-        C:\Users\tejas\.shorebird\bin\shorebird.bat patch android
+        C:\Users\tejas\.shorebird\bin\shorebird.bat patch android --allow-asset-diffs
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Success: Patch deployed successfully to all users on the current release!" -ForegroundColor Green
