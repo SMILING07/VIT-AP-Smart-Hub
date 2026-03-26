@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -103,10 +104,14 @@ class UpdateService {
     }
 
     try {
-      // Track received bytes and total separately so we handle GitHub's
-      // missing Content-Length (total == -1) gracefully.
+      // Track received bytes, total, speed and ETA.
       final ValueNotifier<int> receivedNotifier = ValueNotifier(0);
       final ValueNotifier<int> totalNotifier = ValueNotifier(-1);
+      final ValueNotifier<double> speedNotifier = ValueNotifier(0); // MB/s
+      final ValueNotifier<int> etaNotifier = ValueNotifier(-1); // seconds
+
+      int lastReceived = 0;
+      DateTime lastTime = DateTime.now();
 
       if (context.mounted) {
         showDialog(
@@ -115,7 +120,8 @@ class UpdateService {
           builder: (context) => PopScope(
             canPop: false,
             child: AlertDialog(
-              content: Row(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   ValueListenableBuilder<int>(
                     valueListenable: totalNotifier,
@@ -123,28 +129,64 @@ class UpdateService {
                       valueListenable: receivedNotifier,
                       builder: (context, received, _) {
                         final progress = total > 0 ? received / total : null;
-                        return CircularProgressIndicator(value: progress);
+                        return LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 6,
+                        );
                       },
                     ),
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: ValueListenableBuilder<int>(
-                      valueListenable: totalNotifier,
-                      builder: (context, total, _) =>
-                          ValueListenableBuilder<int>(
-                            valueListenable: receivedNotifier,
-                            builder: (context, received, _) {
-                              if (total > 0) {
-                                final pct = ((received / total) * 100)
-                                    .toStringAsFixed(0);
-                                return Text('Downloading: $pct%');
-                              } else {
-                                final mb = (received / (1024 * 1024))
-                                    .toStringAsFixed(1);
-                                return Text('Downloading: $mb MB');
-                              }
-                            },
+                  const SizedBox(height: 16),
+                  ValueListenableBuilder<int>(
+                    valueListenable: totalNotifier,
+                    builder: (context, total, _) => ValueListenableBuilder<int>(
+                      valueListenable: receivedNotifier,
+                      builder: (context, received, _) =>
+                          ValueListenableBuilder<double>(
+                            valueListenable: speedNotifier,
+                            builder: (context, speed, _) =>
+                                ValueListenableBuilder<int>(
+                                  valueListenable: etaNotifier,
+                                  builder: (context, eta, _) {
+                                    final receivedMb =
+                                        (received / (1024 * 1024))
+                                            .toStringAsFixed(1);
+                                    final totalMb = total > 0
+                                        ? (total / (1024 * 1024))
+                                              .toStringAsFixed(1)
+                                        : null;
+                                    final pct = total > 0
+                                        ? ' (${((received / total) * 100).toStringAsFixed(0)}%)'
+                                        : '';
+                                    final speedStr = speed > 0
+                                        ? '  •  ${speed.toStringAsFixed(1)} MB/s'
+                                        : '';
+                                    final etaStr = eta > 0
+                                        ? '  •  ETA ${eta}s'
+                                        : '';
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          totalMb != null
+                                              ? '$receivedMb / $totalMb MB$pct'
+                                              : '$receivedMb MB downloaded',
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                        if (speedStr.isNotEmpty ||
+                                            etaStr.isNotEmpty)
+                                          Text(
+                                            '${speedStr.trim()}$etaStr'.trim(),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                ),
                           ),
                     ),
                   ),
@@ -162,13 +204,18 @@ class UpdateService {
         file.deleteSync();
       }
 
-      // Use a fresh Dio instance with redirect following enabled.
+      // Fresh Dio with redirect following and HTTP keep-alive.
       final downloadDio = Dio(
         BaseOptions(
           followRedirects: true,
           maxRedirects: 10,
           receiveTimeout: const Duration(minutes: 10),
           sendTimeout: const Duration(minutes: 2),
+          headers: {
+            'Connection': 'keep-alive',
+            'Accept-Encoding':
+                'identity', // Disable gzip so progress is accurate
+          },
         ),
       );
 
@@ -178,6 +225,25 @@ class UpdateService {
         onReceiveProgress: (received, total) {
           receivedNotifier.value = received;
           totalNotifier.value = total;
+
+          // Calculate speed and ETA every update tick
+          final now = DateTime.now();
+          final elapsed = now.difference(lastTime).inMilliseconds;
+          if (elapsed >= 500) {
+            final bytesDelta = received - lastReceived;
+            final speedBps = bytesDelta / (elapsed / 1000);
+            final speedMbps = speedBps / (1024 * 1024);
+            speedNotifier.value = double.parse(
+              max(0.0, speedMbps).toStringAsFixed(1),
+            );
+            if (total > 0 && speedBps > 0) {
+              etaNotifier.value = ((total - received) / speedBps).round();
+            } else {
+              etaNotifier.value = -1;
+            }
+            lastReceived = received;
+            lastTime = now;
+          }
         },
       );
 
