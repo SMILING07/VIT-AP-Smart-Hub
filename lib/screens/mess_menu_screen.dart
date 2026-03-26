@@ -75,7 +75,11 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
     return cell?.toString() ?? '';
   }
 
-  Future<void> _parseFile(String path, String fileName, {required bool isJson}) async {
+  Future<void> _parseFile(
+    String path,
+    String fileName, {
+    required bool isJson,
+  }) async {
     try {
       List<List<dynamic>> extractedData = [];
       List<String> extractedInstructions = [];
@@ -83,35 +87,41 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       if (isJson) {
         String jsonString = await File(path).readAsString();
         dynamic decoded = jsonDecode(jsonString);
-        
+
         List<dynamic> targetList = _findFirstList(decoded);
         if (targetList.isEmpty && decoded is Map) {
-             targetList = [decoded];
+          targetList = [decoded];
         }
 
         if (targetList.isNotEmpty) {
-           if (targetList.first is Map) {
-             extractedData.add((targetList.first as Map).keys.toList());
-             for (var row in targetList) {
-               if (row is Map) {
-                 extractedData.add(row.values.map((e) => _flattenCell(e)).toList());
-               }
-             }
-           } else {
-             for (var row in targetList) {
-               if (row is List) {
-                 extractedData.add(row.map((e) => _flattenCell(e)).toList());
-               } else if (row is Map) {
-                 extractedData.add(row.values.map((e) => _flattenCell(e)).toList());
-               } else {
-                 extractedData.add([row.toString()]);
-               }
-             }
-           }
+          if (targetList.first is Map) {
+            extractedData.add((targetList.first as Map).keys.toList());
+            for (var row in targetList) {
+              if (row is Map) {
+                extractedData.add(
+                  row.values.map((e) => _flattenCell(e)).toList(),
+                );
+              }
+            }
+          } else {
+            for (var row in targetList) {
+              if (row is List) {
+                extractedData.add(row.map((e) => _flattenCell(e)).toList());
+              } else if (row is Map) {
+                extractedData.add(
+                  row.values.map((e) => _flattenCell(e)).toList(),
+                );
+              } else {
+                extractedData.add([row.toString()]);
+              }
+            }
+          }
         }
 
         if (extractedData.isEmpty) {
-           throw Exception("Could not find table data in JSON file. Ensure it is a list of rows or objects.");
+          throw Exception(
+            "Could not find table data in JSON file. Ensure it is a list of rows or objects.",
+          );
         }
       } else {
         var bytes = File(path).readAsBytesSync();
@@ -123,7 +133,10 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
 
           if (table != null) {
             for (var row in table.rows) {
-              if (row.any((element) => element != null && element.toString().trim().isNotEmpty)) {
+              if (row.any(
+                (element) =>
+                    element != null && element.toString().trim().isNotEmpty,
+              )) {
                 extractedData.add(row);
               }
             }
@@ -135,29 +148,55 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       List<List<dynamic>> finalData = [];
       List<String> finalInstructions = [];
       bool foundInstructions = false;
+      bool reachedTableSchema = false;
 
       for (var row in extractedData) {
         if (row.isEmpty) continue;
         String firstCellStr = row.first?.toString().trim().toUpperCase() ?? '';
-        
-        if (!foundInstructions && (firstCellStr.contains('MESS SERVICE INSTRUCTIONS') || firstCellStr.contains('INSTRUCTIONS:'))) {
+
+        if (!reachedTableSchema) {
+           bool hasMealCol = row.any((element) => element != null && element.toString().toUpperCase().contains("BREAKFAST"));
+           if (!hasMealCol) {
+             continue; // Skip junk title rows natively dumped by Excel before the table starts
+           } else {
+             reachedTableSchema = true;
+           }
+        }
+
+        if (!foundInstructions &&
+            (firstCellStr.contains('MESS SERVICE INSTRUCTIONS') ||
+                firstCellStr.contains('INSTRUCTIONS:'))) {
           foundInstructions = true;
           String cellData = row.first.toString();
           if (cellData.contains('\n')) {
-             var lines = cellData.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-             for (var line in lines) {
-                 if (line.toUpperCase().contains('MESS SERVICE INSTRUCTIONS') || line.toUpperCase() == 'INSTRUCTIONS:') continue;
-                 finalInstructions.add(line);
-             }
+            var lines = cellData
+                .split('\n')
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty)
+                .toList();
+            for (var line in lines) {
+              if (line.toUpperCase().contains('MESS SERVICE INSTRUCTIONS') ||
+                  line.toUpperCase() == 'INSTRUCTIONS:') {
+                continue;
+              }
+              finalInstructions.add(line);
+            }
           } else {
-             String restOfRow = row.skip(1).where((e) => e != null && e.toString().trim().isNotEmpty).map((e) => e.toString().trim()).join(' ');
-             if (restOfRow.isNotEmpty) finalInstructions.add(restOfRow);
+            String restOfRow = row
+                .skip(1)
+                .where((e) => e != null && e.toString().trim().isNotEmpty)
+                .map((e) => e.toString().trim())
+                .join(' ');
+            if (restOfRow.isNotEmpty) finalInstructions.add(restOfRow);
           }
-          continue; 
+          continue;
         }
 
         if (foundInstructions) {
-          String instructionLine = row.where((e) => e != null && e.toString().trim().isNotEmpty).map((e) => e.toString().trim()).join(' ');
+          String instructionLine = row
+              .where((e) => e != null && e.toString().trim().isNotEmpty)
+              .map((e) => e.toString().trim())
+              .join(' ');
           if (instructionLine.isNotEmpty) {
             finalInstructions.add(instructionLine);
           }
@@ -165,7 +204,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
           finalData.add(row);
         }
       }
-      
+
       extractedData = finalData;
       extractedInstructions = finalInstructions;
 
@@ -178,7 +217,9 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error parsing file: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error parsing file: $e')));
         setState(() {
           _isLoading = false;
         });
@@ -215,7 +256,14 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                     color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('XLS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                  child: const Text(
+                    'XLS',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
                 ),
                 title: const Text('Excel (.xlsx)'),
                 subtitle: const Text('Standard spreadsheet layout'),
@@ -232,7 +280,14 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                     color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text('{ }', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)),
+                  child: const Text(
+                    '{ }',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
                 ),
                 title: const Text('JSON (.json)'),
                 subtitle: const Text('Structured data layout'),
@@ -266,24 +321,28 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
 
         String sourcePath = result.files.single.path!;
         String fileName = result.files.single.name;
-        
+
         final directory = await getApplicationDocumentsDirectory();
         final File excelFile = File('${directory.path}/saved_mess_menu.xlsx');
         final File jsonFile = File('${directory.path}/saved_mess_menu.json');
-        final File nameFile = File('${directory.path}/saved_mess_menu_name.txt');
-        
+        final File nameFile = File(
+          '${directory.path}/saved_mess_menu_name.txt',
+        );
+
         if (await excelFile.exists()) await excelFile.delete();
         if (await jsonFile.exists()) await jsonFile.delete();
-        
+
         final File destinationFile = isJson ? jsonFile : excelFile;
         await File(sourcePath).copy(destinationFile.path);
         await nameFile.writeAsString(fileName);
-        
+
         await _parseFile(destinationFile.path, fileName, isJson: isJson);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
         setState(() {
           _isLoading = false;
         });
@@ -303,8 +362,12 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
           elevation: 0,
           actions: const [],
           bottom: TabBar(
-            indicatorColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
-            labelColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+            indicatorColor: isDark
+                ? AppTheme.secondaryColor
+                : AppTheme.primaryColor,
+            labelColor: isDark
+                ? AppTheme.secondaryColor
+                : AppTheme.primaryColor,
             unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
             tabs: const [
               Tab(text: 'Mess Menu'),
@@ -388,13 +451,25 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
 
   List<DateTime> _getMealTimes(DateTime now, String mealName) {
     if (mealName == "BREAKFAST") {
-      return [DateTime(now.year, now.month, now.day, 7, 15), DateTime(now.year, now.month, now.day, 9, 0)];
+      return [
+        DateTime(now.year, now.month, now.day, 7, 15),
+        DateTime(now.year, now.month, now.day, 9, 0),
+      ];
     } else if (mealName == "LUNCH") {
-      return [DateTime(now.year, now.month, now.day, 12, 30), DateTime(now.year, now.month, now.day, 14, 15)];
+      return [
+        DateTime(now.year, now.month, now.day, 12, 30),
+        DateTime(now.year, now.month, now.day, 14, 15),
+      ];
     } else if (mealName == "SNACKS") {
-      return [DateTime(now.year, now.month, now.day, 16, 0), DateTime(now.year, now.month, now.day, 18, 0)];
+      return [
+        DateTime(now.year, now.month, now.day, 16, 0),
+        DateTime(now.year, now.month, now.day, 18, 0),
+      ];
     } else if (mealName == "DINNER") {
-      return [DateTime(now.year, now.month, now.day, 19, 30), DateTime(now.year, now.month, now.day, 21, 0)];
+      return [
+        DateTime(now.year, now.month, now.day, 19, 30),
+        DateTime(now.year, now.month, now.day, 21, 0),
+      ];
     }
     return [now, now];
   }
@@ -403,29 +478,70 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
     if (_menuData.isEmpty) return const SizedBox.shrink();
 
     final now = DateTime.now();
-    final List<String> weekdays = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+    final List<String> weekdays = [
+      "MONDAY",
+      "TUESDAY",
+      "WEDNESDAY",
+      "THURSDAY",
+      "FRIDAY",
+      "SATURDAY",
+      "SUNDAY",
+    ];
     final currentDayStr = weekdays[now.weekday - 1];
 
     // Wait, dart weekday: 1 = Monday to 7 = Sunday
     // Wait, dart weekday: 1 = Monday to 7 = Sunday
-    final List<String> correctDisplayWeekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    final List<String> displayMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    final List<String> correctDisplayWeekdays = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    final List<String> displayMonths = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     final dayName = correctDisplayWeekdays[now.weekday - 1];
     final dateName = "${displayMonths[now.month - 1]} ${now.day}";
 
     List<dynamic> headerRow = [];
     int startRowIndex = 0;
     for (int i = 0; i < _menuData.length; i++) {
-        if (_menuData[i].any((element) => element != null && element.toString().toUpperCase().contains("BREAKFAST"))) {
-            headerRow = _menuData[i];
-            startRowIndex = i + 1;
-            break;
-        }
+      if (_menuData[i].any(
+        (element) =>
+            element != null &&
+            element.toString().toUpperCase().contains("BREAKFAST"),
+      )) {
+        headerRow = _menuData[i];
+        startRowIndex = i + 1;
+        break;
+      }
     }
 
     if (headerRow.isEmpty) return const SizedBox.shrink();
 
-    final List<String> shortWeekdays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+    final List<String> shortWeekdays = [
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI",
+      "SAT",
+      "SUN",
+    ];
     final currentShortDayStr = shortWeekdays[now.weekday - 1];
 
     List<dynamic>? todayRow;
@@ -433,20 +549,21 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       var row = _menuData[i];
       if (row.isNotEmpty && row.first != null) {
         String firstCell = row.first.toString().toUpperCase();
-        
+
         bool hasDigits = firstCell.contains(RegExp(r'\d'));
-        
+
         if (hasDigits) {
-           String dateStr = now.day.toString(); 
-           if (RegExp(r'\b' + dateStr + r'\b').hasMatch(firstCell)) {
-               todayRow = row;
-               break;
-           }
+          String dateStr = now.day.toString();
+          if (RegExp(r'\b' + dateStr + r'\b').hasMatch(firstCell)) {
+            todayRow = row;
+            break;
+          }
         } else {
-           if (firstCell.contains(currentDayStr) || firstCell.contains(currentShortDayStr)) {
-               todayRow = row;
-               break;
-           }
+          if (firstCell.contains(currentDayStr) ||
+              firstCell.contains(currentShortDayStr)) {
+            todayRow = row;
+            break;
+          }
         }
       }
     }
@@ -456,7 +573,11 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
 
     List<Widget> mealCards = [];
     final mealSpecs = [
-      {"name": "BREAKFAST", "icon": Icons.local_cafe, "range": "7:15 - 9:00 AM"},
+      {
+        "name": "BREAKFAST",
+        "icon": Icons.local_cafe,
+        "range": "7:15 - 9:00 AM",
+      },
       {"name": "LUNCH", "icon": Icons.lunch_dining, "range": "12:30 - 2:15 PM"},
       {"name": "SNACKS", "icon": Icons.cookie, "range": "4:00 - 6:00 PM"},
       {"name": "DINNER", "icon": Icons.nights_stay, "range": "7:30 - 9:00 PM"},
@@ -466,14 +587,20 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
       String mealName = spec["name"] as String;
       int colIndex = -1;
       for (int i = 0; i < headerRow.length; i++) {
-        if (headerRow[i] != null && headerRow[i].toString().toUpperCase().contains(mealName)) {
+        if (headerRow[i] != null &&
+            headerRow[i].toString().toUpperCase().contains(mealName)) {
           colIndex = i;
           break;
         }
       }
 
-      if (colIndex != -1 && colIndex < validTodayRow.length && validTodayRow[colIndex] != null) {
-        String items = validTodayRow[colIndex].toString().replaceAll('\n', ', ');
+      if (colIndex != -1 &&
+          colIndex < validTodayRow.length &&
+          validTodayRow[colIndex] != null) {
+        String items = validTodayRow[colIndex].toString().replaceAll(
+          '\n',
+          ', ',
+        );
         final times = _getMealTimes(now, mealName);
         mealCards.add(
           MealCard(
@@ -483,7 +610,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
             startTime: times[0],
             endTime: times[1],
             icon: spec["icon"] as IconData,
-          )
+          ),
         );
       }
     }
@@ -507,7 +634,9 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.cyanAccent : Colors.cyan.shade700,
+                          color: isDark
+                              ? Colors.cyanAccent
+                              : Colors.cyan.shade700,
                         ),
                       ),
                       TextSpan(
@@ -536,9 +665,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: mealCards,
-          ),
+          child: Column(children: mealCards),
         ),
       ],
     );
@@ -851,14 +978,16 @@ class _NightMessViewState extends State<NightMessView> {
 
         String sourcePath = result.files.single.path!;
         String ext = result.files.single.extension ?? 'jpg';
-        
+
         final directory = await getApplicationDocumentsDirectory();
-        final File destinationFile = File('${directory.path}/night_mess_image.$ext');
+        final File destinationFile = File(
+          '${directory.path}/night_mess_image.$ext',
+        );
         final File extFile = File('${directory.path}/night_mess_ext.txt');
-        
+
         await File(sourcePath).copy(destinationFile.path);
         await extFile.writeAsString(ext);
-        
+
         if (mounted) {
           setState(() {
             _imagePath = destinationFile.path;
@@ -868,7 +997,9 @@ class _NightMessViewState extends State<NightMessView> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
         setState(() {
           _isLoading = false;
         });
@@ -884,13 +1015,15 @@ class _NightMessViewState extends State<NightMessView> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _imagePath == null
-              ? _buildEmptyState(isDark)
-              : _buildImageContent(isDark),
+          ? _buildEmptyState(isDark)
+          : _buildImageContent(isDark),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _pickAndSaveImage,
         icon: const Icon(Icons.add_photo_alternate),
         label: Text(_imagePath == null ? 'Upload Image' : 'Change Image'),
-        backgroundColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+        backgroundColor: isDark
+            ? AppTheme.secondaryColor
+            : AppTheme.primaryColor,
       ),
     );
   }
@@ -933,10 +1066,7 @@ class _NightMessViewState extends State<NightMessView> {
         minScale: 0.5,
         maxScale: 4.0,
         child: Center(
-          child: Image.file(
-            File(_imagePath!),
-            fit: BoxFit.contain,
-          ),
+          child: Image.file(File(_imagePath!), fit: BoxFit.contain),
         ),
       ),
     );
@@ -992,7 +1122,8 @@ class _MealCardState extends State<MealCard> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    bool isServing = now.isAfter(widget.startTime) && now.isBefore(widget.endTime);
+    bool isServing =
+        now.isAfter(widget.startTime) && now.isBefore(widget.endTime);
     bool isSoon = now.isBefore(widget.startTime);
 
     Color mainColor = Colors.white;
@@ -1000,16 +1131,16 @@ class _MealCardState extends State<MealCard> {
     String badgeText = '';
     String footerLeft = '';
     String footerRight = '';
-    
+
     if (isServing) {
-      mainColor = Colors.greenAccent.shade400; 
+      mainColor = Colors.greenAccent.shade400;
       badgeColor = mainColor;
       badgeText = 'SERVING';
       footerLeft = "● IT'S ${widget.mealName} TIME";
       final diff = widget.endTime.difference(now);
       footerRight = "END - ${_formatDuration(diff)}";
     } else if (isSoon) {
-      mainColor = Colors.amber.shade400; 
+      mainColor = Colors.amber.shade400;
       badgeColor = mainColor;
       badgeText = 'SOON';
       footerLeft = "UPCOMING ${widget.mealName}";
@@ -1018,14 +1149,18 @@ class _MealCardState extends State<MealCard> {
     }
 
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Using the flat solid dark grey/black color from your latest screenshot
-    Color cardBg = isDark ? const Color(0xFF181818) : Colors.white; 
-    Color iconBgColor = isDark ? const Color(0xFF111111) : Colors.black.withValues(alpha: 0.05);
+    Color cardBg = isDark ? const Color(0xFF181818) : Colors.white;
+    Color iconBgColor = isDark
+        ? const Color(0xFF111111)
+        : Colors.black.withValues(alpha: 0.05);
     Color iconColor = isDark ? Colors.cyanAccent : Colors.cyan.shade700;
     Color titleColor = isDark ? Colors.cyanAccent : Colors.cyan.shade800;
     Color timeColor = isDark ? Colors.cyan.shade200 : Colors.cyan.shade700;
-    Color itemColor = isDark ? Colors.cyanAccent.shade100 : Colors.cyan.shade900;
+    Color itemColor = isDark
+        ? Colors.cyanAccent.shade100
+        : Colors.cyan.shade900;
 
     if (isServing || isSoon) {
       titleColor = isDark ? Colors.white : Colors.black;
@@ -1041,12 +1176,12 @@ class _MealCardState extends State<MealCard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor, width: 2.0),
         boxShadow: [
-           BoxShadow(
-              color: borderColor.withValues(alpha: 0.6),
-              blurRadius: 15,
-              spreadRadius: 2,
-              offset: const Offset(0, 0),
-           ),
+          BoxShadow(
+            color: borderColor.withValues(alpha: 0.6),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(0, 0),
+          ),
         ],
       ),
       child: Column(
@@ -1083,17 +1218,17 @@ class _MealCardState extends State<MealCard> {
                       const SizedBox(height: 4),
                       Text(
                         widget.timeRange,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: timeColor,
-                        ),
+                        style: TextStyle(fontSize: 12, color: timeColor),
                       ),
                     ],
                   ),
                 ),
                 if (badgeText.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: badgeColor,
                       borderRadius: BorderRadius.circular(6),
@@ -1115,17 +1250,16 @@ class _MealCardState extends State<MealCard> {
             padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 20.0),
             child: Text(
               widget.items,
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.5,
-                color: itemColor,
-              ),
+              style: TextStyle(fontSize: 15, height: 1.5, color: itemColor),
             ),
           ),
           if (isServing || isSoon) ...[
             Divider(color: borderColor, height: 1),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 14.0,
+              ),
               decoration: BoxDecoration(
                 color: badgeColor.withValues(alpha: 0.05),
                 borderRadius: const BorderRadius.only(
@@ -1156,7 +1290,7 @@ class _MealCardState extends State<MealCard> {
                 ],
               ),
             ),
-          ]
+          ],
         ],
       ),
     );
