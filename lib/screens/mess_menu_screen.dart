@@ -598,19 +598,26 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         }
       }
 
-      if (colIndex != -1 &&
-          colIndex < validTodayRow.length &&
-          validTodayRow[colIndex] != null) {
-        String items = validTodayRow[colIndex].toString().replaceAll(
-          '\n',
-          ', ',
-        );
+      // Show card even if cell is empty/null — render 'Not specified' as fallback
+      if (colIndex != -1) {
+        final rawCell = colIndex < validTodayRow.length
+            ? validTodayRow[colIndex]
+            : null;
+        final rawStr = rawCell?.toString().trim() ?? '';
+        final items = rawStr.isEmpty
+            ? 'Not specified'
+            : rawStr
+                  .split('\n')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .join('\n• ');
+        final displayItems = rawStr.isEmpty ? items : '• $items';
         final times = _getMealTimes(now, mealName);
         mealCards.add(
           MealCard(
             mealName: mealName,
             timeRange: spec["range"] as String,
-            items: items,
+            items: displayItems,
             startTime: times[0],
             endTime: times[1],
             icon: spec["icon"] as IconData,
