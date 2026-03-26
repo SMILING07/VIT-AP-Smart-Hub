@@ -103,7 +103,10 @@ class UpdateService {
     }
 
     try {
-      final ValueNotifier<double> progressNotifier = ValueNotifier(0.0);
+      // Track received bytes and total separately so we handle GitHub's
+      // missing Content-Length (total == -1) gracefully.
+      final ValueNotifier<int> receivedNotifier = ValueNotifier(0);
+      final ValueNotifier<int> totalNotifier = ValueNotifier(-1);
 
       if (context.mounted) {
         showDialog(
@@ -114,18 +117,35 @@ class UpdateService {
             child: AlertDialog(
               content: Row(
                 children: [
-                  ValueListenableBuilder<double>(
-                    valueListenable: progressNotifier,
-                    builder: (context, value, child) =>
-                        CircularProgressIndicator(
-                          value: value > 0 ? value : null,
-                        ),
+                  ValueListenableBuilder<int>(
+                    valueListenable: totalNotifier,
+                    builder: (context, total, _) => ValueListenableBuilder<int>(
+                      valueListenable: receivedNotifier,
+                      builder: (context, received, _) {
+                        final progress = total > 0 ? received / total : null;
+                        return CircularProgressIndicator(value: progress);
+                      },
+                    ),
                   ),
                   const SizedBox(width: 20),
-                  ValueListenableBuilder<double>(
-                    valueListenable: progressNotifier,
-                    builder: (context, value, child) => Text(
-                      'Downloading: ${(value * 100).toStringAsFixed(0)}%',
+                  Expanded(
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: totalNotifier,
+                      builder: (context, total, _) =>
+                          ValueListenableBuilder<int>(
+                            valueListenable: receivedNotifier,
+                            builder: (context, received, _) {
+                              if (total > 0) {
+                                final pct = ((received / total) * 100)
+                                    .toStringAsFixed(0);
+                                return Text('Downloading: $pct%');
+                              } else {
+                                final mb = (received / (1024 * 1024))
+                                    .toStringAsFixed(1);
+                                return Text('Downloading: $mb MB');
+                              }
+                            },
+                          ),
                     ),
                   ),
                 ],
@@ -136,24 +156,28 @@ class UpdateService {
       }
 
       final dir = await getTemporaryDirectory();
-
       final savePath = '${dir.path}/app_update.apk';
       final file = File(savePath);
       if (file.existsSync()) {
         file.deleteSync();
       }
 
-      await _dio.download(
+      // Use a fresh Dio instance with redirect following enabled.
+      final downloadDio = Dio(
+        BaseOptions(
+          followRedirects: true,
+          maxRedirects: 10,
+          receiveTimeout: const Duration(minutes: 10),
+          sendTimeout: const Duration(minutes: 2),
+        ),
+      );
+
+      await downloadDio.download(
         apkUrl,
         savePath,
-        options: Options(
-          receiveTimeout: const Duration(minutes: 5),
-          sendTimeout: const Duration(minutes: 5),
-        ),
         onReceiveProgress: (received, total) {
-          if (total != -1) {
-            progressNotifier.value = received / total;
-          }
+          receivedNotifier.value = received;
+          totalNotifier.value = total;
         },
       );
 
