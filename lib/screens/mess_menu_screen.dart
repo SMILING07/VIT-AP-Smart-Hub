@@ -604,14 +604,13 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
             ? validTodayRow[colIndex]
             : null;
         final rawStr = rawCell?.toString().trim() ?? '';
-        final items = rawStr.isEmpty
+        final displayItems = rawStr.isEmpty
             ? 'Not specified'
             : rawStr
                   .split('\n')
                   .map((s) => s.trim())
                   .where((s) => s.isNotEmpty)
-                  .join('\n• ');
-        final displayItems = rawStr.isEmpty ? items : '• $items';
+                  .join(', ');
         final times = _getMealTimes(now, mealName);
         mealCards.add(
           MealCard(
