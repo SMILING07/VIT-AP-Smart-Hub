@@ -37,7 +37,8 @@ switch ($choice) {
         
         if ($LASTEXITCODE -eq 0) {
             Write-Host "Success: Patch deployed successfully to all users on the current release!" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-Host "Error: Shorebird patch failed." -ForegroundColor Red
         }
         exit 0
@@ -61,7 +62,8 @@ switch ($choice) {
                 
                 if ($matches.Count -ge 5 -and $matches[4]) {
                     $buildNumber = [int]$matches[4]
-                } else {
+                }
+                else {
                     $buildNumber = 0
                 }
         
@@ -73,7 +75,8 @@ switch ($choice) {
                 $newContent.Add($newVersionString)
                 $versionUpdated = $true
                 Write-Host "Bumped pubspec version to $newVersionString" -ForegroundColor Green
-            } else {
+            }
+            else {
                 $newContent.Add($line)
             }
         }
@@ -95,7 +98,8 @@ switch ($choice) {
             Write-Host "Success: Release finished successfully! The new version is $newVersionString." -ForegroundColor Green
             Write-Host "Please upload this APK to your GitHub Release page:" -ForegroundColor Yellow
             Write-Host " -> build\app\outputs\flutter-apk\app-release.apk" -ForegroundColor Yellow
-        } else {
+        }
+        else {
             Write-Host "Error: Shorebird release failed." -ForegroundColor Red
         }
     }
