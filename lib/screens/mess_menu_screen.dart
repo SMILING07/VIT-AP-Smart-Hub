@@ -155,12 +155,16 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         String firstCellStr = row.first?.toString().trim().toUpperCase() ?? '';
 
         if (!reachedTableSchema) {
-           bool hasMealCol = row.any((element) => element != null && element.toString().toUpperCase().contains("BREAKFAST"));
-           if (!hasMealCol) {
-             continue; // Skip junk title rows natively dumped by Excel before the table starts
-           } else {
-             reachedTableSchema = true;
-           }
+          bool hasMealCol = row.any(
+            (element) =>
+                element != null &&
+                element.toString().toUpperCase().contains("BREAKFAST"),
+          );
+          if (!hasMealCol) {
+            continue; // Skip junk title rows natively dumped by Excel before the table starts
+          } else {
+            reachedTableSchema = true;
+          }
         }
 
         if (!foundInstructions &&
