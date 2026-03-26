@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:path_provider/path_provider.dart';
 import '../utils/app_theme.dart';
@@ -1011,44 +1013,116 @@ class _NightMessViewState extends State<NightMessView> {
     }
   }
 
-  Future<void> _pickAndSaveImage() async {
+  void _showImageSourcePicker() {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(
+                'Select Image Source',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.teal.withValues(alpha: 0.15),
+                  child: const Icon(Icons.camera_alt, color: Colors.teal),
+                ),
+                title: const Text('Camera'),
+                subtitle: const Text('Take a new photo'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickCropAndSave(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Colors.purple.withValues(alpha: 0.15),
+                  child: const Icon(Icons.photo_library, color: Colors.purple),
+                ),
+                title: const Text('Gallery'),
+                subtitle: const Text('Choose from photos'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickCropAndSave(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickCropAndSave(ImageSource source) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
+      final picker = ImagePicker();
+      final XFile? picked = await picker.pickImage(
+        source: source,
+        imageQuality: 90,
       );
+      if (picked == null) return;
 
-      if (result != null && result.files.single.path != null) {
+      final CroppedFile? cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Night Mess Image',
+            toolbarColor: const Color(0xFF6C63FF),
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: const Color(0xFF6C63FF),
+            lockAspectRatio: false,
+          ),
+        ],
+      );
+      if (cropped == null) return;
+
+      if (mounted) setState(() => _isLoading = true);
+
+      final directory = await getApplicationDocumentsDirectory();
+      final ext = cropped.path.split('.').last.toLowerCase();
+      final File destinationFile = File(
+        '${directory.path}/night_mess_image.$ext',
+      );
+      final File extFile = File('${directory.path}/night_mess_ext.txt');
+
+      await File(cropped.path).copy(destinationFile.path);
+      await extFile.writeAsString(ext);
+
+      if (mounted) {
         setState(() {
-          _isLoading = true;
+          _imagePath = destinationFile.path;
+          _isLoading = false;
         });
-
-        String sourcePath = result.files.single.path!;
-        String ext = result.files.single.extension ?? 'jpg';
-
-        final directory = await getApplicationDocumentsDirectory();
-        final File destinationFile = File(
-          '${directory.path}/night_mess_image.$ext',
-        );
-        final File extFile = File('${directory.path}/night_mess_ext.txt');
-
-        await File(sourcePath).copy(destinationFile.path);
-        await extFile.writeAsString(ext);
-
-        if (mounted) {
-          setState(() {
-            _imagePath = destinationFile.path;
-            _isLoading = false;
-          });
-        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -1064,7 +1138,7 @@ class _NightMessViewState extends State<NightMessView> {
           ? _buildEmptyState(isDark)
           : _buildImageContent(isDark),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _pickAndSaveImage,
+        onPressed: _showImageSourcePicker,
         icon: const Icon(Icons.add_photo_alternate),
         label: Text(_imagePath == null ? 'Upload Image' : 'Change Image'),
         backgroundColor: isDark
