@@ -7,7 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+import '../providers/vtop_data_provider.dart';
 import '../utils/app_theme.dart';
+import 'settings_screen.dart';
 
 class MessMenuScreen extends StatefulWidget {
   const MessMenuScreen({super.key});
@@ -417,25 +420,79 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
             ],
           ),
         ),
-        body: TabBarView(
+        body: Consumer<VtopDataProvider>(
+          builder: (context, provider, _) {
+            final selectedHostel = provider.userHostel;
+            
+            if (selectedHostel == null) {
+              return _buildHostelPrompt(isDark);
+            }
+
+            return TabBarView(
+              children: [
+                Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _menuData.isEmpty
+                          ? _buildEmptyState(isDark)
+                          : _buildMainContent(isDark),
+                  floatingActionButton: FloatingActionButton.extended(
+                    onPressed: _showFormatPicker,
+                    icon: const Icon(Icons.upload_file),
+                    label: Text(_menuData.isEmpty ? 'Upload Menu' : 'Change Menu'),
+                    backgroundColor: isDark
+                        ? AppTheme.secondaryColor
+                        : AppTheme.primaryColor,
+                  ),
+                ),
+                const NightMessView(),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHostelPrompt(bool isDark) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
           children: [
-            Scaffold(
-              backgroundColor: Colors.transparent,
-              body: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _menuData.isEmpty
-                  ? _buildEmptyState(isDark)
-                  : _buildMainContent(isDark),
-              floatingActionButton: FloatingActionButton.extended(
-                onPressed: _showFormatPicker,
-                icon: const Icon(Icons.upload_file),
-                label: Text(_menuData.isEmpty ? 'Upload Menu' : 'Change Menu'),
-                backgroundColor: isDark
-                    ? AppTheme.secondaryColor
-                    : AppTheme.primaryColor,
+            Icon(Icons.hotel, size: 80, color: isDark ? Colors.white24 : Colors.black26),
+            const SizedBox(height: 24),
+            Text(
+              'Hostel Not Selected',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            const NightMessView(),
+            const SizedBox(height: 12),
+            Text(
+              'Please select your hostel in Settings to access the Mess Menu and Night Mess.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+              icon: const Icon(Icons.settings),
+              label: const Text('Go to Settings'),
+              style: FilledButton.styleFrom(
+                backgroundColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
           ],
         ),
       ),

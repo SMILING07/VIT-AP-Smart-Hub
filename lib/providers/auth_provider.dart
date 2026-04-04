@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../services/vtop_api_service.dart';
 
@@ -15,10 +17,50 @@ class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
 
+  VtopApiService get apiService => _apiService;
+
   Future<void> checkAuthStatus() async {
     final regNo = await _secureStorage.read(key: 'regNo');
-    if (regNo != null && regNo.isNotEmpty) {
-      _isAuthenticated = true;
+    final password = await _secureStorage.read(key: 'password');
+    // final cookies = await _secureStorage.read(key: 'cookies');
+
+    if (regNo != null && regNo.isNotEmpty && password != null) {
+      // Perform a real login to establish the backend rust session
+      await login(regNo, password);
+    }
+  }
+
+  Future<String?> getActiveRegNo() async {
+    return await _secureStorage.read(key: 'regNo');
+  }
+
+  Future<List<Map<String, String>>> getSavedAccounts() async {
+    final str = await _secureStorage.read(key: 'saved_accounts');
+    if (str == null) return [];
+    try {
+      final List dec = jsonDecode(str);
+      return dec.map((e) => Map<String, String>.from(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _saveAccountToList(String regNo, String password) async {
+    var accounts = await getSavedAccounts();
+    accounts.removeWhere((acc) => acc['regNo'] == regNo);
+    accounts.insert(0, {'regNo': regNo, 'password': password});
+    await _secureStorage.write(key: 'saved_accounts', value: jsonEncode(accounts));
+  }
+
+  Future<void> removeAccount(String regNo) async {
+    var accounts = await getSavedAccounts();
+    accounts.removeWhere((acc) => acc['regNo'] == regNo);
+    await _secureStorage.write(key: 'saved_accounts', value: jsonEncode(accounts));
+    
+    final activeRegNo = await _secureStorage.read(key: 'regNo');
+    if (activeRegNo == regNo) {
+      await logout();
+    } else {
       notifyListeners();
     }
   }
@@ -31,7 +73,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       bool success = false;
 
-      // Hardcoded admin bypass
+      // Hardcoded admin bypass - keeping for compatibility during migration
       if (regNo.toLowerCase() == 'admin' && password == 'admin') {
         success = true;
       } else {
@@ -40,13 +82,22 @@ class AuthProvider extends ChangeNotifier {
 
       if (success) {
         _isAuthenticated = true;
-        // Optionally save credentials (without password ideally, just session state)
         await _secureStorage.write(key: 'regNo', value: regNo);
+        await _secureStorage.write(key: 'password', value: password);
+        await _saveAccountToList(regNo, password);
+        
+        // Optionally fetch and save cookies for session persistence across cold starts
+        // final cookies = await _apiService.getCookies();
+        // if (cookies != null) {
+        //   await _secureStorage.write(key: 'cookies', value: String.fromCharCodes(cookies));
+        // }
+
       } else {
         _error = 'Login failed. Please check your credentials and captcha.';
       }
     } catch (e) {
       _error = 'Network error occurred. $e';
+      debugPrint('Login Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -56,7 +107,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _isAuthenticated = false;
     await _secureStorage.delete(key: 'regNo');
-    // Call api to invalidate session
+    await _secureStorage.delete(key: 'password');
+    // await _secureStorage.delete(key: 'cookies');
     notifyListeners();
   }
 }
