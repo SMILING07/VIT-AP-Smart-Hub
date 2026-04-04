@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Rust related
+/rust/target/
+
+# Local configuration
+android/local.properties
+
+# Analysis logs
+analyze_output.txt
+lib_analysis.txt
+web_build.txt
+web_build2.txt
+build_chrome_log.txt
+shorebird_help.txt
