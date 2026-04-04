@@ -15,71 +15,109 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
   String _targetFormat = 'PDF';
   bool _isConverting = false;
 
-  final List<String> _supportedFormats = ['PDF', 'Word (.docx)'];
+  String _statusMessage = 'Select a file to begin';
+  double _uploadProgress = 0;
+  final List<String> _supportedFormats = [
+    'PDF',
+    'Word (.docx)',
+    'Excel (.xlsx)',
+    'Image (.jpg)',
+  ];
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any, // Allow any file for the mockup
-    );
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
 
     if (result != null && result.files.single.path != null) {
       setState(() {
         _selectedFilePath = result.files.single.path;
         _selectedFileName = result.files.single.name;
+        _statusMessage = 'File selected: $_selectedFileName';
       });
     }
   }
 
   Future<void> _convertFile() async {
-    if (_selectedFilePath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a file to convert first.')),
-      );
-      return;
-    }
+    if (_selectedFilePath == null) return;
 
     setState(() {
       _isConverting = true;
+      _uploadProgress = 0;
+      _statusMessage = 'Initializing converter...';
     });
 
-    // Simulate network or processing delay
-    await Future.delayed(const Duration(seconds: 3));
+    try {
+      // Step 1: Validation
+      await Future.delayed(const Duration(milliseconds: 500));
+      final extension = _selectedFileName?.split('.').last.toLowerCase() ?? '';
+      if (_targetFormat.toLowerCase().contains(extension) &&
+          extension.isNotEmpty) {
+        throw 'File is already in $_targetFormat format';
+      }
 
-    setState(() {
-      _isConverting = false;
-    });
+      // Step 2: Simulated Upload
+      for (int i = 1; i <= 5; i++) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (!mounted) return;
+        setState(() {
+          _uploadProgress = i * 0.1;
+          _statusMessage = 'Uploading file... ${(i * 10)}%';
+        });
+      }
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: Theme.of(context).cardColor,
-          title: Text(
-            'Conversion Complete',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.titleLarge?.color,
+      // Step 3: Simulated Processing/Conversion
+      final steps = [
+        'Parsing document structure...',
+        'Extracting text and assets...',
+        'Applying $_targetFormat layout engine...',
+        'Optimizing output file size...',
+        'Finalizing conversion...',
+      ];
+
+      for (int i = 0; i < steps.length; i++) {
+        if (!mounted) return;
+        setState(() => _statusMessage = steps[i]);
+        for (int j = 0; j < 5; j++) {
+          await Future.delayed(const Duration(milliseconds: 200));
+          if (!mounted) return;
+          setState(() => _uploadProgress = 0.5 + (i * 0.1) + (j * 0.02));
+        }
+      }
+
+      setState(() {
+        _uploadProgress = 1.0;
+        _statusMessage = 'Conversion successful!';
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('File successfully converted to $_targetFormat!'),
+            backgroundColor: AppTheme.successColor,
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'OPEN',
+              textColor: Colors.white,
+              onPressed: () {},
             ),
           ),
-          content: Text(
-            'Successfully converted "$_selectedFileName" to $_targetFormat.\n\n(This is a simulated mockup)',
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _statusMessage = 'Error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.errorColor,
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _selectedFilePath = null;
-                  _selectedFileName = null;
-                });
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isConverting = false;
+        });
+      }
     }
   }
 
@@ -165,6 +203,25 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
                 ),
               ),
             ),
+
+            if (_isConverting) ...[
+              const SizedBox(height: 24),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: LinearProgressIndicator(
+                  value: _uploadProgress,
+                  minHeight: 8,
+                  backgroundColor: Colors.white10,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _statusMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ],
 
             const SizedBox(height: 32),
 

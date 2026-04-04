@@ -63,8 +63,7 @@ class _CgpaCalculatorScreenState extends State<CgpaCalculatorScreen> {
   @override
   void initState() {
     super.initState();
-    // Add one empty course by default
-    _addCourse();
+    // Start with 0 courses as requested
   }
 
   @override
@@ -175,17 +174,6 @@ class _CgpaCalculatorScreenState extends State<CgpaCalculatorScreen> {
             Expanded(
               child: Column(
                 children: [
-                  TextField(
-                    decoration: const InputDecoration(
-                      labelText: 'Course Name (Optional)',
-                      isDense: true,
-                      border: UnderlineInputBorder(),
-                    ),
-                    onChanged: (val) {
-                      _courses[index].name = val;
-                    },
-                  ),
-                  const SizedBox(height: 12),
                   Row(
                     children: [
                       // Credits Input

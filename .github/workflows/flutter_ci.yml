@@ -1,0 +1,63 @@
+name: Flutter CI (Native Fix)
+
+on:
+  push:
+    branches: [ main, fix/android-build-and-backend ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-linux-android
+          override: true
+
+      - name: Add Extra Rust Targets
+        run: |
+          rustup target add armv7-linux-androideabi
+          rustup target add x86_64-linux-android
+
+      - name: Install Cargo-NDK
+        run: cargo install cargo-ndk
+
+      - name: Setup Android NDK
+        run: |
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/30.0.14904198" >> $GITHUB_ENV
+          # GitHub Runners sometimes have different NDK paths, we'll try to find it
+          # but 30.0.14904198 is what we're targeting locally.
+
+      - name: Run Flutter Pub Get
+        run: flutter pub get
+
+      - name: Build Release APK
+        run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+        env:
+          # Point cargokit to the right NDK if needed
+          NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

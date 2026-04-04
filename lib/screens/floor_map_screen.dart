@@ -1,79 +1,129 @@
 import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 
-class FloorMapScreen extends StatelessWidget {
+class FloorMapScreen extends StatefulWidget {
   const FloorMapScreen({super.key});
+
+  @override
+  State<FloorMapScreen> createState() => _FloorMapScreenState();
+}
+
+class _FloorMapScreenState extends State<FloorMapScreen> {
+  int _selectedFloor = 1;
+  final List<int> _floors = [1, 2, 3, 4];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('First Floor Map'),
+        title: Text('Floor $_selectedFloor Map'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Calculate an appropriate map size based on screen constraints
-          final mapWidth = 400.0;
-          final mapHeight = 800.0;
+      body: Row(
+        children: [
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Calculate an appropriate map size based on screen constraints
+                final mapWidth = 400.0;
+                final mapHeight = 800.0;
 
-          return Center(
-            child: InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 3.0,
-              boundaryMargin: const EdgeInsets.all(100),
-              constrained: false, // allow panning beyond screen size
-              child: Container(
-                width: mapWidth,
-                height: mapHeight,
-                color:
-                    AppTheme.surfaceColor, // Assuming a dark theme background
-                child: Stack(
-                  children: [
-                    // Central Corridor
-                    Positioned(
-                      top: 0,
-                      bottom: 0,
-                      left: mapWidth / 2 - 30, // 60 width corridor
-                      width: 60,
-                      child: Container(color: Colors.grey[300]),
+                return Center(
+                  child: InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 3.0,
+                    boundaryMargin: const EdgeInsets.all(100),
+                    constrained: false, // allow panning beyond screen size
+                    child: Container(
+                      width: mapWidth,
+                      height: mapHeight,
+                      color: AppTheme
+                          .surfaceColor, // Assuming a dark theme background
+                      child: Stack(
+                        children: [
+                          // Central Corridor
+                          Positioned(
+                            top: 0,
+                            bottom: 0,
+                            left: mapWidth / 2 - 30, // 60 width corridor
+                            width: 60,
+                            child: Container(color: Colors.grey[300]),
+                          ),
+
+                          // Top Left Stairs
+                          _buildStairs(left: 20, top: 20),
+                          // Top Right Stairs
+                          _buildStairs(right: 20, top: 20),
+                          // Bottom Left Stairs
+                          _buildStairs(left: 20, bottom: 20),
+                          // Bottom Right Stairs
+                          _buildStairs(right: 20, bottom: 20),
+
+                          // Rooms 1-10 on current floor (Left Side)
+                          ...List.generate(10, (index) {
+                            final roomNum = (_selectedFloor * 100) + index + 1;
+                            return _buildRoom(
+                              context: context,
+                              roomNumber: roomNum,
+                              left: 40,
+                              top: 100.0 + (index * 60),
+                            );
+                          }),
+
+                          // Rooms 11-20 on current floor (Right Side)
+                          ...List.generate(10, (index) {
+                            final roomNum = (_selectedFloor * 100) + index + 11;
+                            return _buildRoom(
+                              context: context,
+                              roomNumber: roomNum,
+                              right: 40,
+                              top: 100.0 + (index * 60),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
-
-                    // Top Left Stairs
-                    _buildStairs(left: 20, top: 20),
-                    // Top Right Stairs
-                    _buildStairs(right: 20, top: 20),
-                    // Bottom Left Stairs
-                    _buildStairs(left: 20, bottom: 20),
-                    // Bottom Right Stairs
-                    _buildStairs(right: 20, bottom: 20),
-
-                    // Rooms 101-110 (Left Side)
-                    ...List.generate(10, (index) {
-                      return _buildRoom(
-                        context: context,
-                        roomNumber: 101 + index,
-                        left: 40,
-                        top: 100.0 + (index * 60),
-                      );
-                    }),
-
-                    // Rooms 111-120 (Right Side)
-                    ...List.generate(10, (index) {
-                      return _buildRoom(
-                        context: context,
-                        roomNumber: 111 + index,
-                        right: 40,
-                        top: 100.0 + (index * 60),
-                      );
-                    }),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+          // Floor Sidebar
+          Container(
+            width: 60,
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor,
+              border: const Border(left: BorderSide(color: Colors.white10)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _floors
+                  .map(
+                    (f) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: FloatingActionButton.small(
+                        heroTag: 'floor_$f',
+                        onPressed: () => setState(() => _selectedFloor = f),
+                        backgroundColor: _selectedFloor == f
+                            ? AppTheme.secondaryColor
+                            : Colors.white10,
+                        child: Text(
+                          '$f',
+                          style: TextStyle(
+                            color: _selectedFloor == f
+                                ? Colors.black
+                                : Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
