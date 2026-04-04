@@ -2,7 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class PreferencesService {
   static const _storage = FlutterSecureStorage();
-  
+
   static const _keyUserName = 'user_name';
   static const _keyUserHostel = 'user_hostel';
 
@@ -21,6 +21,7 @@ class PreferencesService {
   static Future<void> setUserHostel(String hostel) async {
     await _storage.write(key: _keyUserHostel, value: hostel);
   }
+
   static Future<void> clearAll() async {
     await _storage.delete(key: _keyUserName);
     await _storage.delete(key: _keyUserHostel);

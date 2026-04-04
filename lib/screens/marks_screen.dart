@@ -46,7 +46,10 @@ class _MarksScreenState extends State<MarksScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Marks', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Marks',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -58,14 +61,19 @@ class _MarksScreenState extends State<MarksScreen> {
               if (provider.selectedSemesterId != null &&
                   provider.marksData?.semesterId != provider.selectedSemesterId)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
                       onPressed: () => provider.fetchMarks(),
                       icon: const Icon(Icons.refresh, size: 16),
                       label: const Text('Load Marks'),
-                      style: FilledButton.styleFrom(backgroundColor: AppTheme.primaryColor),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                      ),
                     ),
                   ),
                 ),
@@ -78,31 +86,51 @@ class _MarksScreenState extends State<MarksScreen> {
   }
 
   Widget _buildContent(VtopDataProvider provider) {
-    if (provider.isLoading) return const Center(child: CircularProgressIndicator());
+    if (provider.isLoading)
+      return const Center(child: CircularProgressIndicator());
     if (provider.error != null) {
       return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(Icons.error_outline, color: AppTheme.errorColor, size: 48),
-          const SizedBox(height: 12),
-          Text(provider.error!, style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          FilledButton.icon(onPressed: () => provider.fetchMarks(),
-              icon: const Icon(Icons.refresh), label: const Text('Retry')),
-        ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: AppTheme.errorColor, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              provider.error!,
+              style: const TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () => provider.fetchMarks(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
       );
     }
 
     final records = provider.marksData?.records ?? [];
     if (records.isEmpty) {
       return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(Icons.score_outlined, color: Colors.white30, size: 64),
-          const SizedBox(height: 16),
-          const Text('No marks data', style: TextStyle(color: Colors.white54)),
-          const SizedBox(height: 12),
-          FilledButton.icon(onPressed: () => provider.fetchMarks(),
-              icon: const Icon(Icons.download), label: const Text('Fetch Marks')),
-        ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.score_outlined, color: Colors.white30, size: 64),
+            const SizedBox(height: 16),
+            const Text(
+              'No marks data',
+              style: TextStyle(color: Colors.white54),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () => provider.fetchMarks(),
+              icon: const Icon(Icons.download),
+              label: const Text('Fetch Marks'),
+            ),
+          ],
+        ),
       );
     }
 
@@ -147,25 +175,48 @@ class _MarksCardState extends State<_MarksCard> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(widget.record.coursecode,
-                          style: const TextStyle(color: AppTheme.secondaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(widget.record.coursetitle,
-                          style: TextStyle(
-                            color: Theme.of(context).textTheme.displayLarge?.color,
-                            fontSize: 15, fontWeight: FontWeight.bold,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.record.coursecode,
+                          style: const TextStyle(
+                            color: AppTheme.secondaryColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
-                          maxLines: 2, overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 4),
-                      Text('${widget.record.coursetype}  ·  Slot: ${widget.record.slot}',
-                          style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 11)),
-                    ]),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.record.coursetitle,
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).textTheme.displayLarge?.color,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${widget.record.coursetype}  ·  Slot: ${widget.record.slot}',
+                          style: TextStyle(
+                            color: isDark ? Colors.white38 : Colors.black38,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   AnimatedRotation(
                     turns: _expanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(Icons.expand_more, color: isDark ? Colors.white38 : Colors.black38),
+                    child: Icon(
+                      Icons.expand_more,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
                   ),
                 ],
               ),
@@ -181,28 +232,116 @@ class _MarksCardState extends State<_MarksCard> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: Row(children: [
-                      Expanded(flex: 3, child: Text('Assessment', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45, fontSize: 11))),
-                      Expanded(flex: 2, child: Text('Max', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45, fontSize: 11), textAlign: TextAlign.center)),
-                      Expanded(flex: 2, child: Text('Scored', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45, fontSize: 11), textAlign: TextAlign.center)),
-                      Expanded(flex: 2, child: Text('Wtg', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45, fontSize: 11), textAlign: TextAlign.center)),
-                    ]),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            'Assessment',
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.black45,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Max',
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.black45,
+                              fontSize: 11,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Scored',
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.black45,
+                              fontSize: 11,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Wtg',
+                            style: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.black45,
+                              fontSize: 11,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  ...marks.map((m) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Row(children: [
-                      Expanded(flex: 3, child: Text(m.markstitle, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 12))),
-                      Expanded(flex: 2, child: Text(m.maxmarks, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 12), textAlign: TextAlign.center)),
-                      Expanded(flex: 2, child: Text(m.scoredmark.isEmpty ? '-' : m.scoredmark,
-                          style: TextStyle(
-                            color: m.scoredmark.isEmpty ? (isDark ? Colors.white30 : Colors.black26) : AppTheme.primaryColor,
-                            fontSize: 12, fontWeight: FontWeight.bold,
-                          ), textAlign: TextAlign.center)),
-                      Expanded(flex: 2, child: Text(m.weightagemark.isEmpty ? '-' : m.weightagemark,
-                          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12), textAlign: TextAlign.center)),
-                    ]),
-                  )),
+                  ...marks.map(
+                    (m) => Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              m.markstitle,
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              m.maxmarks,
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black54,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              m.scoredmark.isEmpty ? '-' : m.scoredmark,
+                              style: TextStyle(
+                                color: m.scoredmark.isEmpty
+                                    ? (isDark ? Colors.white30 : Colors.black26)
+                                    : AppTheme.primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              m.weightagemark.isEmpty ? '-' : m.weightagemark,
+                              style: TextStyle(
+                                color: isDark ? Colors.white54 : Colors.black54,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 8),
                 ],
               ),

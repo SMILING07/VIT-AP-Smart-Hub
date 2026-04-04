@@ -44,21 +44,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final dataProv = Provider.of<VtopDataProvider>(context, listen: false);
-    
+
     // Clear data but keep semester
     dataProv.clearAllData();
-    
+
     setState(() => _isLoading = true);
     await auth.login(regNo, password);
-    
+
     if (auth.isAuthenticated) {
       await _loadAccounts();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Switched to $regNo seamlessly!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Switched to $regNo seamlessly!')),
+        );
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to login with $regNo')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to login with $regNo')));
       }
       setState(() => _isLoading = false);
     }
@@ -69,7 +73,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await auth.removeAccount(regNo);
     await _loadAccounts();
     if (!auth.isAuthenticated && mounted) {
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (r) => false,
+      );
     }
   }
 
@@ -84,13 +92,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: regCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Registration No')),
+            TextField(
+              controller: regCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'Registration No'),
+            ),
             const SizedBox(height: 12),
-            TextField(controller: pwdCtrl, obscureText: true, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'Password')),
+            TextField(
+              controller: pwdCtrl,
+              obscureText: true,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(labelText: 'Password'),
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -99,7 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Add & Switch'),
           ),
         ],
-      )
+      ),
     );
   }
 
@@ -108,7 +128,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Settings',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -131,260 +154,362 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 24),
 
-          // Profile & Preferences
-          Consumer<VtopDataProvider>(
-            builder: (context, provider, child) {
-              return Card(
-                color: Theme.of(context).cardColor,
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.person_pin, color: AppTheme.primaryColor),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Profile & Preferences',
-                            style: TextStyle(
-                              color: Theme.of(context).textTheme.titleLarge?.color,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  // Profile & Preferences
+                  Consumer<VtopDataProvider>(
+                    builder: (context, provider, child) {
+                      return Card(
+                        color: Theme.of(context).cardColor,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_pin,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Profile & Preferences',
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge?.color,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller:
+                                    TextEditingController(
+                                        text: provider.userName,
+                                      )
+                                      ..selection = TextSelection.fromPosition(
+                                        TextPosition(
+                                          offset:
+                                              provider.userName?.length ?? 0,
+                                        ),
+                                      ),
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'Your Name',
+                                  hintText: 'Enter your name for the dashboard',
+                                  prefixIcon: Icon(
+                                    Icons.badge,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                onChanged: (val) =>
+                                    provider.setUserName(val.trim()),
+                              ),
+                              const SizedBox(height: 20),
+                              DropdownButtonFormField<String>(
+                                initialValue: provider.userHostel,
+                                dropdownColor: Theme.of(context).cardColor,
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                ),
+                                decoration: const InputDecoration(
+                                  labelText: 'Select Hostel',
+                                  prefixIcon: Icon(
+                                    Icons.hotel,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                items:
+                                    [
+                                          'MH1',
+                                          'MH2',
+                                          'MH3',
+                                          'MH4',
+                                          'MH5',
+                                          'LH1',
+                                          'LH2',
+                                          'LH3',
+                                          'LH4',
+                                        ]
+                                        .map(
+                                          (h) => DropdownMenuItem(
+                                            value: h,
+                                            child: Text(h),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: (val) {
+                                  if (val != null) provider.setUserHostel(val);
+                                },
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: TextEditingController(text: provider.userName)..selection = TextSelection.fromPosition(TextPosition(offset: provider.userName?.length ?? 0)),
-                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-                        decoration: const InputDecoration(
-                          labelText: 'Your Name',
-                          hintText: 'Enter your name for the dashboard',
-                          prefixIcon: Icon(Icons.badge, color: AppTheme.primaryColor),
                         ),
-                        onChanged: (val) => provider.setUserName(val.trim()),
-                      ),
-                      const SizedBox(height: 20),
-                      DropdownButtonFormField<String>(
-                        initialValue: provider.userHostel,
-                        dropdownColor: Theme.of(context).cardColor,
-                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
-                        decoration: const InputDecoration(
-                          labelText: 'Select Hostel',
-                          prefixIcon: Icon(Icons.hotel, color: AppTheme.primaryColor),
-                        ),
-                        items: [
-                          'MH1', 'MH2', 'MH3', 'MH4', 'MH5',
-                          'LH1', 'LH2', 'LH3', 'LH4'
-                        ].map((h) => DropdownMenuItem(value: h, child: Text(h))).toList(),
-                        onChanged: (val) {
-                          if (val != null) provider.setUserHostel(val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // App Appearance
-          Card(
-            color: Theme.of(context).cardColor,
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.palette, color: AppTheme.primaryColor),
-                      const SizedBox(width: 12),
-                      Text(
-                        'App Appearance',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.titleLarge?.color,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
-                  Consumer<ThemeProvider>(
-                    builder: (context, themeProvider, child) {
-                      final isDark = themeProvider.themeMode == ThemeMode.dark;
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                  // App Appearance
+                  Card(
+                    color: Theme.of(context).cardColor,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            isDark ? 'Dark Mode' : 'Light Mode',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.palette,
+                                color: AppTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'App Appearance',
+                                style: TextStyle(
+                                  color: Theme.of(
                                     context,
-                                  ).textTheme.bodyMedium?.color ??
-                                  Colors.white,
-                              fontSize: 16,
-                            ),
+                                  ).textTheme.titleLarge?.color,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          Switch(
-                            value: isDark,
-                            activeTrackColor: AppTheme.primaryColor,
-                            onChanged: (bool value) {
-                              themeProvider.setThemeMode(
-                                value ? ThemeMode.dark : ThemeMode.light,
+                          const SizedBox(height: 16),
+                          Consumer<ThemeProvider>(
+                            builder: (context, themeProvider, child) {
+                              final isDark =
+                                  themeProvider.themeMode == ThemeMode.dark;
+                              return Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    isDark ? 'Dark Mode' : 'Light Mode',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color ??
+                                          Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Switch(
+                                    value: isDark,
+                                    activeTrackColor: AppTheme.primaryColor,
+                                    onChanged: (bool value) {
+                                      themeProvider.setThemeMode(
+                                        value
+                                            ? ThemeMode.dark
+                                            : ThemeMode.light,
+                                      );
+                                    },
+                                  ),
+                                ],
                               );
                             },
                           ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-          // Accounts Manager
-          Card(
-            color: Theme.of(context).cardColor,
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                  // Accounts Manager
+                  Card(
+                    color: Theme.of(context).cardColor,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Icon(Icons.people_alt, color: AppTheme.primaryColor),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Saved Accounts',
-                            style: TextStyle(
-                              color: Theme.of(context).textTheme.titleLarge?.color,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.people_alt,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Saved Accounts',
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge?.color,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.person_add,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                onPressed: _showAddAccountDialog,
+                                tooltip: 'Add Account',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          if (_accounts.isEmpty)
+                            const Text(
+                              'No accounts saved.',
+                              style: TextStyle(color: Colors.white54),
                             ),
+                          ..._accounts.map((acc) {
+                            final isAct = acc['regNo'] == _activeRegNo;
+                            return Container(
+                              margin: const EdgeInsets.only(top: 8),
+                              decoration: BoxDecoration(
+                                color: isAct
+                                    ? AppTheme.primaryColor.withValues(
+                                        alpha: 0.15,
+                                      )
+                                    : AppTheme.surfaceColor,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isAct
+                                      ? AppTheme.primaryColor
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: isAct
+                                      ? AppTheme.primaryColor
+                                      : Colors.white12,
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                title: Text(
+                                  acc['regNo']!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  isAct ? 'Active Account' : 'Tap to switch',
+                                  style: TextStyle(
+                                    color: isAct
+                                        ? AppTheme.primaryColor
+                                        : Colors.white54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                onTap: () => _switchAccount(
+                                  acc['regNo']!,
+                                  acc['password']!,
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: AppTheme.errorColor,
+                                    size: 20,
+                                  ),
+                                  onPressed: () =>
+                                      _removeAccount(acc['regNo']!),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Account Actions
+                  Card(
+                    color: Theme.of(context).cardColor,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.account_circle,
+                                color: AppTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Account Actions',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.titleLarge?.color,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Provider.of<AuthProvider>(
+                                context,
+                                listen: false,
+                              ).logout();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.errorColor,
+                              foregroundColor: Colors.white,
+                            ),
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Log Out'),
                           ),
                         ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.person_add, color: AppTheme.primaryColor),
-                        onPressed: _showAddAccountDialog,
-                        tooltip: 'Add Account',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (_accounts.isEmpty)
-                    const Text('No accounts saved.', style: TextStyle(color: Colors.white54)),
-                  ..._accounts.map((acc) {
-                    final isAct = acc['regNo'] == _activeRegNo;
-                    return Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      decoration: BoxDecoration(
-                        color: isAct ? AppTheme.primaryColor.withValues(alpha: 0.15) : AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: isAct ? AppTheme.primaryColor : Colors.transparent),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: isAct ? AppTheme.primaryColor : Colors.white12,
-                          child: const Icon(Icons.person, color: Colors.white, size: 20),
-                        ),
-                        title: Text(acc['regNo']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        subtitle: Text(isAct ? 'Active Account' : 'Tap to switch', style: TextStyle(color: isAct ? AppTheme.primaryColor : Colors.white54, fontSize: 12)),
-                        onTap: () => _switchAccount(acc['regNo']!, acc['password']!),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor, size: 20),
-                          onPressed: () => _removeAccount(acc['regNo']!),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Account Actions
-          Card(
-            color: Theme.of(context).cardColor,
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.account_circle,
-                        color: AppTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Account Actions',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.titleLarge?.color,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Provider.of<AuthProvider>(
-                        context,
-                        listen: false,
-                      ).logout();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                        (route) => false,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.errorColor,
-                      foregroundColor: Colors.white,
                     ),
-                    icon: const Icon(Icons.logout),
-                    label: const Text('Log Out'),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    ),
     );
   }
 }

@@ -49,14 +49,20 @@ class AuthProvider extends ChangeNotifier {
     var accounts = await getSavedAccounts();
     accounts.removeWhere((acc) => acc['regNo'] == regNo);
     accounts.insert(0, {'regNo': regNo, 'password': password});
-    await _secureStorage.write(key: 'saved_accounts', value: jsonEncode(accounts));
+    await _secureStorage.write(
+      key: 'saved_accounts',
+      value: jsonEncode(accounts),
+    );
   }
 
   Future<void> removeAccount(String regNo) async {
     var accounts = await getSavedAccounts();
     accounts.removeWhere((acc) => acc['regNo'] == regNo);
-    await _secureStorage.write(key: 'saved_accounts', value: jsonEncode(accounts));
-    
+    await _secureStorage.write(
+      key: 'saved_accounts',
+      value: jsonEncode(accounts),
+    );
+
     final activeRegNo = await _secureStorage.read(key: 'regNo');
     if (activeRegNo == regNo) {
       await logout();
@@ -85,13 +91,12 @@ class AuthProvider extends ChangeNotifier {
         await _secureStorage.write(key: 'regNo', value: regNo);
         await _secureStorage.write(key: 'password', value: password);
         await _saveAccountToList(regNo, password);
-        
+
         // Optionally fetch and save cookies for session persistence across cold starts
         // final cookies = await _apiService.getCookies();
         // if (cookies != null) {
         //   await _secureStorage.write(key: 'cookies', value: String.fromCharCodes(cookies));
         // }
-
       } else {
         _error = 'Login failed. Please check your credentials and captcha.';
       }

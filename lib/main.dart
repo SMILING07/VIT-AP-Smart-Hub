@@ -17,22 +17,23 @@ Future<void> main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProxyProvider<AuthProvider, VtopDataProvider>(
-          create: (context) => VtopDataProvider(context.read<AuthProvider>().apiService),
-          update: (context, auth, previous) {
-            final provider = previous ?? VtopDataProvider(auth.apiService);
-            if (auth.isAuthenticated) {
-              // On every login or account switch, we want fresh data
-              // We can check if the current data belongs to the new user 
-              // but a simple reset is safer for now as per requirements.
-              provider.initializePreferences();
-              provider.fetchSemesters();
-            } else {
-              provider.resetState();
-            }
-            return provider;
-          },
-        ),
+          ChangeNotifierProxyProvider<AuthProvider, VtopDataProvider>(
+            create: (context) =>
+                VtopDataProvider(context.read<AuthProvider>().apiService),
+            update: (context, auth, previous) {
+              final provider = previous ?? VtopDataProvider(auth.apiService);
+              if (auth.isAuthenticated) {
+                // On every login or account switch, we want fresh data
+                // We can check if the current data belongs to the new user
+                // but a simple reset is safer for now as per requirements.
+                provider.initializePreferences();
+                provider.fetchSemesters();
+              } else {
+                provider.resetState();
+              }
+              return provider;
+            },
+          ),
         ],
         child: const VitApSmartHubApp(),
       ),
@@ -40,38 +41,44 @@ Future<void> main() async {
   } catch (e, stack) {
     debugPrint('FAILED TO START RUST LIB: $e');
     debugPrint(stack.toString());
-    runApp(MaterialApp(
-      home: Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                const SizedBox(height: 16),
-                const Text(
-                  'Initialization Error',
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'The app failed to initialize the Rust backend. \nError: $e',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => main(),
-                  child: const Text('Try Again'),
-                ),
-              ],
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF121212),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Initialization Error',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'The app failed to initialize the Rust backend. \nError: $e',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => main(),
+                    child: const Text('Try Again'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
   }
 }
 

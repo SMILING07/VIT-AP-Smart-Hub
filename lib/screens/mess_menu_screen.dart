@@ -423,7 +423,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         body: Consumer<VtopDataProvider>(
           builder: (context, provider, _) {
             final selectedHostel = provider.userHostel;
-            
+
             if (selectedHostel == null) {
               return _buildHostelPrompt(isDark);
             }
@@ -435,12 +435,14 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
                   body: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : _menuData.isEmpty
-                          ? _buildEmptyState(isDark)
-                          : _buildMainContent(isDark),
+                      ? _buildEmptyState(isDark)
+                      : _buildMainContent(isDark),
                   floatingActionButton: FloatingActionButton.extended(
                     onPressed: _showFormatPicker,
                     icon: const Icon(Icons.upload_file),
-                    label: Text(_menuData.isEmpty ? 'Upload Menu' : 'Change Menu'),
+                    label: Text(
+                      _menuData.isEmpty ? 'Upload Menu' : 'Change Menu',
+                    ),
                     backgroundColor: isDark
                         ? AppTheme.secondaryColor
                         : AppTheme.primaryColor,
@@ -461,7 +463,11 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Icon(Icons.hotel, size: 80, color: isDark ? Colors.white24 : Colors.black26),
+            Icon(
+              Icons.hotel,
+              size: 80,
+              color: isDark ? Colors.white24 : Colors.black26,
+            ),
             const SizedBox(height: 24),
             Text(
               'Hostel Not Selected',
@@ -488,9 +494,14 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
               icon: const Icon(Icons.settings),
               label: const Text('Go to Settings'),
               style: FilledButton.styleFrom(
-                backgroundColor: isDark ? AppTheme.secondaryColor : AppTheme.primaryColor,
+                backgroundColor: isDark
+                    ? AppTheme.secondaryColor
+                    : AppTheme.primaryColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],

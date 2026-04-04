@@ -55,7 +55,10 @@ class VtopApiService {
 
   /// Fetches full attendance details for a course
   Future<FullAttendanceData?> getFullAttendance(
-      String semesterId, String courseId, String courseType) async {
+    String semesterId,
+    String courseId,
+    String courseType,
+  ) async {
     if (_client == null) return null;
     try {
       return await fetchFullAttendance(
@@ -116,7 +119,9 @@ class VtopApiService {
 
   /// Fetches detailed grades for a course
   Future<GradeDetailsData?> getGradeDetails(
-      String semesterId, String courseId) async {
+    String semesterId,
+    String courseId,
+  ) async {
     if (_client == null) return null;
     try {
       return await fetchGradeViewDetails(
@@ -153,7 +158,11 @@ class VtopApiService {
   }
 
   /// WIFI login/logout using Rust
-  Future<(bool, String)> wifiAction(String username, String password, int action) async {
+  Future<(bool, String)> wifiAction(
+    String username,
+    String password,
+    int action,
+  ) async {
     try {
       return await fetchWifi(username: username, password: password, i: action);
     } catch (e) {

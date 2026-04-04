@@ -43,7 +43,9 @@ class SemesterSelectorWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppTheme.surfaceColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.4),
+              ),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -51,7 +53,10 @@ class SemesterSelectorWidget extends StatelessWidget {
                 value: selected ?? semesters.first.id,
                 dropdownColor: AppTheme.surfaceColor,
                 style: const TextStyle(color: Colors.white),
-                icon: Icon(Icons.keyboard_arrow_down, color: AppTheme.primaryColor),
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppTheme.primaryColor,
+                ),
                 items: semesters.map((sem) {
                   return DropdownMenuItem<String>(
                     value: sem.id,

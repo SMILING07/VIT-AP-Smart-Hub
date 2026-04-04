@@ -32,20 +32,24 @@ class AppTheme {
       scaffoldBackgroundColor: lightBackgroundColor,
       cardColor: lightSurfaceColor,
       fontFamily: GoogleFonts.inter().fontFamily,
-      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme).copyWith(
-        displayLarge: GoogleFonts.inter(
-          color: lightTextColor,
-          fontWeight: FontWeight.bold,
-          fontSize: 32,
-        ),
-        titleLarge: GoogleFonts.inter(
-          color: lightTextColor,
-          fontWeight: FontWeight.w700,
-          fontSize: 20,
-        ),
-        bodyMedium: GoogleFonts.inter(color: lightTextColor, fontSize: 16),
-        bodySmall: GoogleFonts.inter(color: lightTextSecondaryColor, fontSize: 14),
-      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme)
+          .copyWith(
+            displayLarge: GoogleFonts.inter(
+              color: lightTextColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+            ),
+            titleLarge: GoogleFonts.inter(
+              color: lightTextColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+            ),
+            bodyMedium: GoogleFonts.inter(color: lightTextColor, fontSize: 16),
+            bodySmall: GoogleFonts.inter(
+              color: lightTextSecondaryColor,
+              fontSize: 14,
+            ),
+          ),
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
@@ -85,7 +89,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey.shade200),
@@ -99,7 +106,10 @@ class AppTheme {
           borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
         hintStyle: const TextStyle(color: lightTextSecondaryColor),
-        labelStyle: const TextStyle(color: lightTextSecondaryColor, fontWeight: FontWeight.normal),
+        labelStyle: const TextStyle(
+          color: lightTextSecondaryColor,
+          fontWeight: FontWeight.normal,
+        ),
       ),
     );
   }

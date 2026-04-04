@@ -129,13 +129,22 @@ class VtopDataProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchFullAttendance(String courseId, String courseType, {String? semId, bool force = false}) async {
+  Future<void> fetchFullAttendance(
+    String courseId,
+    String courseType, {
+    String? semId,
+    bool force = false,
+  }) async {
     final id = semId ?? _activeSemId;
     if (id == null) return;
     if (!force && _fullAttendanceData != null) return;
     _setLoading(true);
     try {
-      final data = await _apiService.getFullAttendance(id, courseId, courseType);
+      final data = await _apiService.getFullAttendance(
+        id,
+        courseId,
+        courseType,
+      );
       if (data != null) {
         _fullAttendanceData = data;
       } else {
@@ -205,7 +214,11 @@ class VtopDataProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchGradeDetails(String courseId, {String? semId, bool force = false}) async {
+  Future<void> fetchGradeDetails(
+    String courseId, {
+    String? semId,
+    bool force = false,
+  }) async {
     final id = semId ?? _activeSemId;
     if (id == null) return;
     if (!force && _gradeDetailsData != null) return;
@@ -299,27 +312,27 @@ class VtopDataProvider extends ChangeNotifier {
 
   String? _findBestSemester(SemesterData data) {
     if (data.semesters.isEmpty) return null;
-    
+
     final now = DateTime.now();
     final year = now.year;
     final month = now.month;
-    
-    // Logic: 
+
+    // Logic:
     // Jan-June: Winter Semester (e.g., "Winter 2024-25")
     // July-Dec: Fall Semester (e.g., "Fall 2024-25")
     final String targetPrefix = (month >= 1 && month <= 6) ? 'Winter' : 'Fall';
-    final String targetYearRange = (month >= 7) 
-        ? '$year-${(year + 1).toString().substring(2)}' 
+    final String targetYearRange = (month >= 7)
+        ? '$year-${(year + 1).toString().substring(2)}'
         : '${year - 1}-${year.toString().substring(2)}';
-    
+
     final searchTag = '$targetPrefix $targetYearRange';
-    
+
     for (var sem in data.semesters) {
       if (sem.id.contains(searchTag) || sem.name.contains(searchTag)) {
         return sem.id;
       }
     }
-    
+
     // Fallback search prefix only
     for (var sem in data.semesters) {
       if (sem.name.startsWith(targetPrefix)) {

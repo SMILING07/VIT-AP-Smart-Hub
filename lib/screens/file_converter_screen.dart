@@ -17,12 +17,15 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
 
   String _statusMessage = 'Select a file to begin';
   double _uploadProgress = 0;
-  final List<String> _supportedFormats = ['PDF', 'Word (.docx)', 'Excel (.xlsx)', 'Image (.jpg)'];
+  final List<String> _supportedFormats = [
+    'PDF',
+    'Word (.docx)',
+    'Excel (.xlsx)',
+    'Image (.jpg)',
+  ];
 
   Future<void> _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
 
     if (result != null && result.files.single.path != null) {
       setState(() {
@@ -46,7 +49,8 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
       // Step 1: Validation
       await Future.delayed(const Duration(milliseconds: 500));
       final extension = _selectedFileName?.split('.').last.toLowerCase() ?? '';
-      if (_targetFormat.toLowerCase().contains(extension) && extension.isNotEmpty) {
+      if (_targetFormat.toLowerCase().contains(extension) &&
+          extension.isNotEmpty) {
         throw 'File is already in $_targetFormat format';
       }
 
@@ -66,16 +70,16 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
         'Extracting text and assets...',
         'Applying $_targetFormat layout engine...',
         'Optimizing output file size...',
-        'Finalizing conversion...'
+        'Finalizing conversion...',
       ];
 
       for (int i = 0; i < steps.length; i++) {
         if (!mounted) return;
         setState(() => _statusMessage = steps[i]);
         for (int j = 0; j < 5; j++) {
-            await Future.delayed(const Duration(milliseconds: 200));
-            if (!mounted) return;
-            setState(() => _uploadProgress = 0.5 + (i * 0.1) + (j * 0.02));
+          await Future.delayed(const Duration(milliseconds: 200));
+          if (!mounted) return;
+          setState(() => _uploadProgress = 0.5 + (i * 0.1) + (j * 0.02));
         }
       }
 
@@ -90,7 +94,11 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
             content: Text('File successfully converted to $_targetFormat!'),
             backgroundColor: AppTheme.successColor,
             behavior: SnackBarBehavior.floating,
-            action: SnackBarAction(label: 'OPEN', textColor: Colors.white, onPressed: () {}),
+            action: SnackBarAction(
+              label: 'OPEN',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
           ),
         );
       }
@@ -98,7 +106,10 @@ class _FileConverterScreenState extends State<FileConverterScreen> {
       if (mounted) {
         setState(() => _statusMessage = 'Error: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.errorColor),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
         );
       }
     } finally {

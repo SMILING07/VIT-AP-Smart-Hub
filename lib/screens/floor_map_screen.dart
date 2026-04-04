@@ -38,7 +38,8 @@ class _FloorMapScreenState extends State<FloorMapScreen> {
                     child: Container(
                       width: mapWidth,
                       height: mapHeight,
-                      color: AppTheme.surfaceColor, // Assuming a dark theme background
+                      color: AppTheme
+                          .surfaceColor, // Assuming a dark theme background
                       child: Stack(
                         children: [
                           // Central Corridor
@@ -97,18 +98,29 @@ class _FloorMapScreenState extends State<FloorMapScreen> {
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: _floors.map((f) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: FloatingActionButton.small(
-                  heroTag: 'floor_$f',
-                  onPressed: () => setState(() => _selectedFloor = f),
-                  backgroundColor: _selectedFloor == f ? AppTheme.secondaryColor : Colors.white10,
-                  child: Text('$f', style: TextStyle(
-                    color: _selectedFloor == f ? Colors.black : Colors.white,
-                    fontWeight: FontWeight.bold,
-                  )),
-                ),
-              )).toList(),
+              children: _floors
+                  .map(
+                    (f) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: FloatingActionButton.small(
+                        heroTag: 'floor_$f',
+                        onPressed: () => setState(() => _selectedFloor = f),
+                        backgroundColor: _selectedFloor == f
+                            ? AppTheme.secondaryColor
+                            : Colors.white10,
+                        child: Text(
+                          '$f',
+                          style: TextStyle(
+                            color: _selectedFloor == f
+                                ? Colors.black
+                                : Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],
