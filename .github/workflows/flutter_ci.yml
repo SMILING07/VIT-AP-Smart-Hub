@@ -43,9 +43,8 @@ jobs:
 
       - name: Setup Android NDK
         run: |
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/30.0.14904198" >> $GITHUB_ENV
-          # GitHub Runners sometimes have different NDK paths, we'll try to find it
-          # but 30.0.14904198 is what we're targeting locally.
+          LATEST_NDK=$(ls -d $ANDROID_SDK_ROOT/ndk/* | sort -V | tail -n 1)
+          echo "ANDROID_NDK_HOME=$LATEST_NDK" >> $GITHUB_ENV
 
       - name: Run Flutter Pub Get
         run: flutter pub get
