@@ -86,8 +86,9 @@ class _MarksScreenState extends State<MarksScreen> {
   }
 
   Widget _buildContent(VtopDataProvider provider) {
-    if (provider.isLoading)
+    if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
     if (provider.error != null) {
       return Center(
         child: Column(

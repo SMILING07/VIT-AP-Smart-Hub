@@ -89,8 +89,9 @@ class _ExamScheduleScreenState extends State<ExamScheduleScreen> {
 
   Widget _buildContent(VtopDataProvider provider) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (provider.isLoading)
+    if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
     if (provider.error != null) {
       return Center(
         child: Column(

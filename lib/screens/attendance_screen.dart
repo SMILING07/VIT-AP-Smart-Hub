@@ -329,8 +329,9 @@ class _FullAttendancePageState extends State<FullAttendancePage> {
       ),
       body: Consumer<VtopDataProvider>(
         builder: (context, provider, _) {
-          if (provider.isLoading)
+          if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          }
           final data = provider.fullAttendanceData;
           if (data == null) {
             return Center(

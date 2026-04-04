@@ -260,8 +260,9 @@ class _DashboardView extends StatelessWidget {
             nextClass = null;
           }
 
-          if (nextClass != null && nextClass.courseCode.isEmpty)
+          if (nextClass != null && nextClass.courseCode.isEmpty) {
             nextClass = null;
+          }
         }
 
         return RefreshIndicator(

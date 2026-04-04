@@ -39,7 +39,7 @@ jobs:
           rustup target add x86_64-linux-android
 
       - name: Install Cargo-NDK
-        run: cargo install cargo-ndk --version 3.6.3
+        run: cargo install cargo-ndk --version 3.5.7
 
       - name: Setup Android NDK
         run: |

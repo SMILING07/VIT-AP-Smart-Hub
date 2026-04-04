@@ -201,10 +201,12 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       var daySlots = slots.where(
                         (s) => s.day.toUpperCase().startsWith(day),
                       );
-                      if (_slotFilter == 'Theory')
+                      if (_slotFilter == 'Theory') {
                         daySlots = daySlots.where((s) => !s.isLab);
-                      if (_slotFilter == 'Lab')
+                      }
+                      if (_slotFilter == 'Lab') {
                         daySlots = daySlots.where((s) => s.isLab);
+                      }
 
                       final List<TimetableSlot> sortedSlots = daySlots.toList()
                         ..sort((a, b) => a.startTime.compareTo(b.startTime));
@@ -275,8 +277,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
   }
 
   Widget _buildEmptyOrLoading(VtopDataProvider provider) {
-    if (provider.isLoading)
+    if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
     if (provider.error != null) {
       return Center(
         child: Column(

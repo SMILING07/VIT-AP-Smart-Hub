@@ -88,8 +88,9 @@ class _GradesScreenState extends State<GradesScreen> {
   }
 
   Widget _buildContent(VtopDataProvider provider) {
-    if (provider.isLoading)
+    if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
+    }
     if (provider.error != null) {
       return Center(
         child: Column(
@@ -317,8 +318,9 @@ class _GradeDetailPageState extends State<GradeDetailPage> {
       ),
       body: Consumer<VtopDataProvider>(
         builder: (context, provider, _) {
-          if (provider.isLoading)
+          if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
+          }
           final data = provider.gradeDetailsData;
           if (data == null) {
             return Center(
