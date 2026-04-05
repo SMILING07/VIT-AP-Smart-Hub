@@ -350,7 +350,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
 
   Future<void> _pickAndParseFile({required bool isJson}) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: isJson ? ['json'] : ['xlsx'],
       );
