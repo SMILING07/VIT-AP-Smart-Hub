@@ -32,7 +32,7 @@ class VtopDataProvider extends ChangeNotifier {
 
     if (_currentRegNo != null) {
       final regNo = _currentRegNo;
-      
+
       // Mandatory: Pre-load Semester Data first as most features depend on it
       final semD = await CacheService.getData(regNo, 'SemesterData');
       if (semD != null) {
@@ -61,7 +61,7 @@ class VtopDataProvider extends ChangeNotifier {
           if (d != null) _examScheduleData = ExamScheduleData.fromJson(d);
         }),
       ];
-      
+
       await Future.wait(futures);
     }
 
@@ -115,7 +115,7 @@ class VtopDataProvider extends ChangeNotifier {
   AttendanceData? get attendanceData => _attendanceData;
 
   final Map<String, FullAttendanceData> _fullAttendanceCache = {};
-  FullAttendanceData? getFullAttendance(String courseId, String courseType) => 
+  FullAttendanceData? getFullAttendance(String courseId, String courseType) =>
       _fullAttendanceCache["${courseId}_$courseType"];
 
   TimetableData? _timetableData;
@@ -128,7 +128,8 @@ class VtopDataProvider extends ChangeNotifier {
   GradeViewData? get gradeViewData => _gradeViewData;
 
   final Map<String, GradeDetailsData> _gradeDetailsCache = {};
-  GradeDetailsData? getGradeDetails(String courseId) => _gradeDetailsCache[courseId];
+  GradeDetailsData? getGradeDetails(String courseId) =>
+      _gradeDetailsCache[courseId];
 
   GradeHistoryData? _gradeHistoryData;
   GradeHistoryData? get gradeHistoryData => _gradeHistoryData;

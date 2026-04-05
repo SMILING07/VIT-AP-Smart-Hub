@@ -132,10 +132,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : AppTheme.lightTextColor;
-    final secondaryTextColor = isDark ? Colors.white54 : AppTheme.lightTextSecondaryColor;
+    final secondaryTextColor = isDark
+        ? Colors.white54
+        : AppTheme.lightTextSecondaryColor;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.backgroundColor : AppTheme.lightBackgroundColor,
+      backgroundColor: isDark
+          ? AppTheme.backgroundColor
+          : AppTheme.lightBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Settings',
@@ -144,7 +148,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white70 : Colors.black87),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -398,7 +405,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ? AppTheme.primaryColor.withValues(
                                         alpha: 0.15,
                                       )
-                                    : (isDark ? AppTheme.surfaceColor : Colors.grey.shade100),
+                                    : (isDark
+                                          ? AppTheme.surfaceColor
+                                          : Colors.grey.shade100),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isAct
@@ -410,10 +419,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 leading: CircleAvatar(
                                   backgroundColor: isAct
                                       ? AppTheme.primaryColor
-                                      : (isDark ? Colors.white12 : Colors.black12),
+                                      : (isDark
+                                            ? Colors.white12
+                                            : Colors.black12),
                                   child: Icon(
                                     Icons.person,
-                                    color: isAct ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+                                    color: isAct
+                                        ? Colors.white
+                                        : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54),
                                     size: 20,
                                   ),
                                 ),
@@ -440,7 +455,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 trailing: IconButton(
                                   icon: Icon(
                                     Icons.delete_outline,
-                                    color: isAct ? Colors.white70 : AppTheme.errorColor,
+                                    color: isAct
+                                        ? Colors.white70
+                                        : AppTheme.errorColor,
                                     size: 20,
                                   ),
                                   onPressed: () =>

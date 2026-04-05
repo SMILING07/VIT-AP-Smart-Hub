@@ -39,12 +39,15 @@ class AuthProvider extends ChangeNotifier {
       final regNo = await _secureStorage.read(key: 'regNo');
       final password = await _secureStorage.read(key: 'password');
 
-      if (regNo != null && regNo.isNotEmpty && password != null && password.isNotEmpty) {
+      if (regNo != null &&
+          regNo.isNotEmpty &&
+          password != null &&
+          password.isNotEmpty) {
         _activeRegNo = regNo;
         // Optimistically set authenticated if we have credentials
         // The VtopDataProvider will try to fetch using these
         _isAuthenticated = true;
-        
+
         // However, we still need the backend to initialize the session
         // so we perform a "Silent Login"
         await login(regNo, password, isSilent: true);
@@ -96,7 +99,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> login(String regNo, String password, {bool isSilent = false}) async {
+  Future<void> login(
+    String regNo,
+    String password, {
+    bool isSilent = false,
+  }) async {
     if (!isSilent) {
       _isLoading = true;
       _error = null;
@@ -125,7 +132,8 @@ class AuthProvider extends ChangeNotifier {
           _lastAttemptRegNo = regNo;
           _failedAttempts = 1;
         }
-        _error = 'Invalid credentials. Please check your Registration Number and Password.';
+        _error =
+            'Invalid credentials. Please check your Registration Number and Password.';
       }
     } catch (e) {
       _isNetworkError = true;

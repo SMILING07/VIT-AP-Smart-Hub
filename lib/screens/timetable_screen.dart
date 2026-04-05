@@ -121,7 +121,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                                   ? Colors.white
                                   : (isDark ? Colors.white70 : Colors.black87),
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
                           selected: isSelected,
@@ -129,7 +131,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
                             if (selected) setState(() => _slotFilter = filter);
                           },
                           selectedColor: AppTheme.primaryColor,
-                          backgroundColor: isDark ? AppTheme.surfaceColor : Colors.grey.shade200,
+                          backgroundColor: isDark
+                              ? AppTheme.surfaceColor
+                              : Colors.grey.shade200,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -170,14 +174,18 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isDark ? AppTheme.surfaceColor : Colors.grey.shade100,
+                      color: isDark
+                          ? AppTheme.surfaceColor
+                          : Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: TabBar(
                       isScrollable: true,
                       tabAlignment: TabAlignment.center,
                       labelColor: AppTheme.primaryColor,
-                      unselectedLabelColor: isDark ? Colors.white38 : Colors.black45,
+                      unselectedLabelColor: isDark
+                          ? Colors.white38
+                          : Colors.black45,
                       indicatorColor: AppTheme.primaryColor,
                       indicatorPadding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -234,9 +242,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                           child: Text(
                             'No classes for this filter',
                             style: TextStyle(
-                              color: isDark
-                                  ? Colors.white38
-                                  : Colors.black38,
+                              color: isDark ? Colors.white38 : Colors.black38,
                             ),
                           ),
                         );
@@ -244,7 +250,10 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       return RefreshIndicator(
                         onRefresh: () => provider.fetchTimetable(force: true),
                         child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           itemCount: finalSlots.length,
                           itemBuilder: (ctx, i) =>
                               _SlotCard(slot: finalSlots[i]),
@@ -311,9 +320,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
             const SizedBox(height: 12),
             Text(
               provider.error!,
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black54,
-              ),
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -330,14 +337,15 @@ class _TimetableScreenState extends State<TimetableScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.calendar_month_outlined,
-              color: isDark ? Colors.white30 : Colors.black26, size: 64),
+          Icon(
+            Icons.calendar_month_outlined,
+            color: isDark ? Colors.white30 : Colors.black26,
+            size: 64,
+          ),
           const SizedBox(height: 16),
           Text(
             'No timetable data',
-            style: TextStyle(
-              color: isDark ? Colors.white54 : Colors.black45,
-            ),
+            style: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(

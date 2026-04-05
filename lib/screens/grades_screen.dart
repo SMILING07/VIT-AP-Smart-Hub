@@ -32,7 +32,8 @@ class _GradesScreenState extends State<GradesScreen> {
       });
     } else {
       _localSemesterId ??= p.previousSemesterId ?? p.defaultSemesterId;
-      if (p.gradeViewData == null || p.gradeViewData?.semesterId != _localSemesterId) {
+      if (p.gradeViewData == null ||
+          p.gradeViewData?.semesterId != _localSemesterId) {
         if (_localSemesterId != null) {
           p.fetchGradeView(semId: _localSemesterId);
         }
@@ -72,7 +73,8 @@ class _GradesScreenState extends State<GradesScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => provider.fetchGradeView(semId: _localSemesterId),
+                      onPressed: () =>
+                          provider.fetchGradeView(semId: _localSemesterId),
                       icon: const Icon(Icons.refresh, size: 16),
                       label: const Text('Load Grades'),
                       style: FilledButton.styleFrom(
@@ -192,7 +194,9 @@ class _GradeCard extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => GradeDetailPage(
                   course: course,
-                  semesterId: context.read<_GradesScreenState>()._localSemesterId,
+                  semesterId: context
+                      .read<_GradesScreenState>()
+                      ._localSemesterId,
                 ),
               ),
             );
@@ -332,8 +336,10 @@ class _GradeDetailPageState extends State<GradeDetailPage> {
           if (data == null) {
             return Center(
               child: FilledButton(
-                onPressed: () =>
-                    provider.fetchGradeDetails(widget.course.courseId, semId: widget.semesterId),
+                onPressed: () => provider.fetchGradeDetails(
+                  widget.course.courseId,
+                  semId: widget.semesterId,
+                ),
                 child: const Text('Load Details'),
               ),
             );

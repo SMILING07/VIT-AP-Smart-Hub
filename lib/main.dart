@@ -26,7 +26,9 @@ Future<void> main() async {
               final newRegNo = auth.activeRegNoSync;
               final oldRegNo = previous?.currentRegNo;
 
-              if (auth.isAuthenticated && newRegNo != null && newRegNo != oldRegNo) {
+              if (auth.isAuthenticated &&
+                  newRegNo != null &&
+                  newRegNo != oldRegNo) {
                 // Account switched or first login — create fresh provider with new regNo
                 // The new provider will pre-load from cache in its constructor
                 return VtopDataProvider(auth.apiService, newRegNo);
@@ -46,7 +48,7 @@ Future<void> main() async {
   } catch (e, stack) {
     debugPrint('FAILED TO START RUST LIB: $e');
     debugPrint(stack.toString());
-    
+
     // Simple retry tracker
     _retryCount++;
 
@@ -83,7 +85,10 @@ Future<void> main() async {
                       padding: const EdgeInsets.only(top: 8.0),
                       child: Text(
                         'Retry Attempt: $_retryCount',
-                        style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   const SizedBox(height: 32),
@@ -94,7 +99,10 @@ Future<void> main() async {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.withValues(alpha: 0.2),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ],

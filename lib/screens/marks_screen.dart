@@ -126,11 +126,13 @@ class _MarksScreenState extends State<MarksScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.score_outlined,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white30
-                    : Colors.black26,
-                size: 64),
+            Icon(
+              Icons.score_outlined,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white30
+                  : Colors.black26,
+              size: 64,
+            ),
             const SizedBox(height: 16),
             Text(
               'No marks data',

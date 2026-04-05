@@ -677,9 +677,10 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
             break;
           }
         }
-        
+
         // Fallback: contains weekday
-        if (firstCell.contains(currentDayStr) || firstCell.contains(currentShortDayStr)) {
+        if (firstCell.contains(currentDayStr) ||
+            firstCell.contains(currentShortDayStr)) {
           todayRow = row;
           break;
         }

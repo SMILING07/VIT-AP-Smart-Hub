@@ -37,10 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'University Tools',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text('University Tools', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 16),
         GridView.count(
           shrinkWrap: true,
@@ -64,7 +61,9 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildGridIcon(Icons.language, 'VTOP', () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const VtopWebviewScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const VtopWebviewScreen(),
+                ),
               );
             }),
             _buildGridIcon(Icons.restaurant_menu, 'Menu', () {
@@ -82,13 +81,17 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildGridIcon(Icons.picture_as_pdf, 'Convert', () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FileConverterScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const FileConverterScreen(),
+                ),
               );
             }),
             _buildGridIcon(Icons.calculate, 'CGPA', () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CgpaCalculatorScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const CgpaCalculatorScreen(),
+                ),
               );
             }),
             _buildGridIcon(Icons.person, 'Profile', () {
@@ -218,7 +221,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, {bool isAction = false}) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label, {
+    bool isAction = false,
+  }) {
     bool isSelected = !isAction && _currentIndex == index;
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -393,9 +401,9 @@ class _DashboardView extends StatelessWidget {
                             child: LinearProgressIndicator(
                               backgroundColor:
                                   Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.white10
-                                      : Colors.black12,
+                                      Brightness.dark
+                                  ? Colors.white10
+                                  : Colors.black12,
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.primaryColor,
                               ),
@@ -505,7 +513,8 @@ class _DashboardView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 32),
-                (context.findAncestorStateOfType<_HomeScreenState>()!)._buildToolsGrid(),
+                (context.findAncestorStateOfType<_HomeScreenState>()!)
+                    ._buildToolsGrid(),
                 const SizedBox(height: 24),
               ],
             ),

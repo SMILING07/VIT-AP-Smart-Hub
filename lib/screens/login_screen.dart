@@ -135,7 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               _obscurePassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
-                              color: Theme.of(context).brightness ==
+                              color:
+                                  Theme.of(context).brightness ==
                                       Brightness.dark
                                   ? Colors.white70
                                   : AppTheme.lightTextSecondaryColor,
@@ -172,23 +173,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                      if (authProvider.failedAttempts >= 3 && !authProvider.isLoading)
+                      if (authProvider.failedAttempts >= 3 &&
+                          !authProvider.isLoading)
                         Padding(
                           padding: const EdgeInsets.only(top: 24.0),
                           child: Column(
                             children: [
                               const Text(
                                 "Too many failed attempts?",
-                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
                               ),
                               TextButton.icon(
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const VtopWebviewScreen()),
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const VtopWebviewScreen(),
+                                    ),
                                   );
                                 },
-                                icon: const Icon(Icons.open_in_browser, size: 18),
+                                icon: const Icon(
+                                  Icons.open_in_browser,
+                                  size: 18,
+                                ),
                                 label: const Text("Verify in VTOP"),
                                 style: TextButton.styleFrom(
                                   foregroundColor: AppTheme.primaryColor,

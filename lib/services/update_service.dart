@@ -299,15 +299,21 @@ class UpdateService {
     final currentParts = current.split('+');
     final targetParts = target.split('+');
 
-    final cleanCurrentVer =
-        currentParts[0].replaceAll(RegExp(r'[vV]'), '').trim();
-    final cleanTargetVer =
-        targetParts[0].replaceAll(RegExp(r'[vV]'), '').trim();
+    final cleanCurrentVer = currentParts[0]
+        .replaceAll(RegExp(r'[vV]'), '')
+        .trim();
+    final cleanTargetVer = targetParts[0]
+        .replaceAll(RegExp(r'[vV]'), '')
+        .trim();
 
-    final curVerList =
-        cleanCurrentVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-    final targetVerList =
-        cleanTargetVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final curVerList = cleanCurrentVer
+        .split('.')
+        .map((e) => int.tryParse(e) ?? 0)
+        .toList();
+    final targetVerList = cleanTargetVer
+        .split('.')
+        .map((e) => int.tryParse(e) ?? 0)
+        .toList();
 
     // Compare semantic version parts (major.minor.patch)
     for (int i = 0; i < 3; i++) {
@@ -318,10 +324,12 @@ class UpdateService {
     }
 
     // If semantic versions are identical, compare build numbers
-    final int curBuild =
-        (currentParts.length > 1) ? (int.tryParse(currentParts[1]) ?? 0) : 0;
-    final int targetBuild =
-        (targetParts.length > 1) ? (int.tryParse(targetParts[1]) ?? 0) : 0;
+    final int curBuild = (currentParts.length > 1)
+        ? (int.tryParse(currentParts[1]) ?? 0)
+        : 0;
+    final int targetBuild = (targetParts.length > 1)
+        ? (int.tryParse(targetParts[1]) ?? 0)
+        : 0;
 
     return curBuild < targetBuild;
   }
