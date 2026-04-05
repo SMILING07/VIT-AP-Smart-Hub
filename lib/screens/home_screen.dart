@@ -30,10 +30,111 @@ class _HomeScreenState extends State<HomeScreen> {
     const _DashboardView(),
     const TimetableScreen(),
     const AttendanceScreen(),
-    const MarksScreen(),
-    const GradesScreen(),
     const ExamScheduleScreen(),
   ];
+
+  Widget _buildToolsGrid() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'University Tools',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          crossAxisCount: 4,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [
+            _buildGridIcon(Icons.score, 'Marks', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MarksScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.grade, 'Grades', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const GradesScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.language, 'VTOP', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const VtopWebviewScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.restaurant_menu, 'Menu', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MessMenuScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.map, 'Maps', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FloorMapScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.picture_as_pdf, 'Convert', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FileConverterScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.calculate, 'CGPA', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CgpaCalculatorScreen()),
+              );
+            }),
+            _buildGridIcon(Icons.person, 'Profile', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            }),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGridIcon(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: AppTheme.primaryColor, size: 28),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white70
+                  : AppTheme.lightTextSecondaryColor,
+              fontSize: 10,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -64,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'VIT AP Smart Hub',
+          'Smart Hub',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -102,24 +203,14 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             // Updated to be a scrollable row to fit more items
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildNavItem(0, Icons.dashboard, 'Dashboard'),
-                  const SizedBox(width: 8),
-                  _buildNavItem(1, Icons.calendar_today, 'Timetable'),
-                  const SizedBox(width: 8),
-                  _buildNavItem(2, Icons.check_circle_outline, 'Attendance'),
-                  const SizedBox(width: 8),
-                  _buildNavItem(3, Icons.score, 'Marks'),
-                  const SizedBox(width: 8),
-                  _buildNavItem(4, Icons.grade, 'Grades'),
-                  const SizedBox(width: 8),
-                  _buildNavItem(5, Icons.event_note, 'Exams'),
-                ],
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.dashboard, 'Dashboard'),
+                _buildNavItem(1, Icons.calendar_today, 'Timetable'),
+                _buildNavItem(2, Icons.check_circle_outline, 'Attendance'),
+                _buildNavItem(3, Icons.event_note, 'Exams'),
+              ],
             ),
           ),
         ),
@@ -127,15 +218,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    bool isSelected = _currentIndex == index;
+  Widget _buildNavItem(int index, IconData icon, String label, {bool isAction = false}) {
+    bool isSelected = !isAction && _currentIndex == index;
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
+        if (isAction) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const VtopWebviewScreen()),
+          );
+        } else {
+          setState(() {
+            _currentIndex = index;
+          });
+        }
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
@@ -290,11 +388,15 @@ class _DashboardView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (provider.isLoading)
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 16.0),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
                             child: LinearProgressIndicator(
-                              backgroundColor: Colors.white10,
-                              valueColor: AlwaysStoppedAnimation<Color>(
+                              backgroundColor:
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white10
+                                      : Colors.black12,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppTheme.primaryColor,
                               ),
                             ),
@@ -402,375 +504,9 @@ class _DashboardView extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 32),
+                (context.findAncestorStateOfType<_HomeScreenState>()!)._buildToolsGrid(),
                 const SizedBox(height: 24),
-
-                // Floor Map Card
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FloorMapScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.secondaryColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.secondaryColor.withValues(
-                              alpha: 0.2,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.map,
-                            color: AppTheme.secondaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Campus Floor Map',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'View interactive building map',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.color,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // File Converter Card
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FileConverterScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.successColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.successColor.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.picture_as_pdf,
-                            color: AppTheme.successColor,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'File Converter',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Convert documents to PDF/Word',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.color,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // VTOP Portal WebView Card
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const VtopWebviewScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.secondaryColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.secondaryColor.withValues(
-                              alpha: 0.2,
-                            ),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.school,
-                            color: AppTheme.secondaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'VTOP Portal',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'View university platform directly',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.color,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // CGPA Calculator Card
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CgpaCalculatorScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.blue.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.calculate,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'CGPA Calculator',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Calculate your GPA dynamically',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.color,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Mess Menu Card
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MessMenuScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.restaurant_menu,
-                            color: Colors.orange,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Mess Menu',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'View your mess menu from Excel',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.color,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

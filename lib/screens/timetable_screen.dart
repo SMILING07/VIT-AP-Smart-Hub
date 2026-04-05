@@ -37,7 +37,11 @@ class _TimetableScreenState extends State<TimetableScreen> {
   }
 
   void _selectCurrentSemester(VtopDataProvider p) {
-    if (p.semesterData != null && p.semesterData!.semesters.isNotEmpty) {
+    if (p.defaultSemesterId != null) {
+      if (p.selectedSemesterId == null) {
+        p.setSelectedSemester(p.defaultSemesterId!);
+      }
+    } else if (p.semesterData != null && p.semesterData!.semesters.isNotEmpty) {
       if (p.selectedSemesterId == null) {
         p.setSelectedSemester(p.semesterData!.semesters.first.id);
       }
@@ -48,6 +52,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
   Widget build(BuildContext context) {
     return Consumer<VtopDataProvider>(
       builder: (context, provider, _) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         final slots = provider.timetableData?.slots ?? [];
         final Set<String> activeDayPrefixes = slots
             .map(
@@ -103,24 +108,36 @@ class _TimetableScreenState extends State<TimetableScreen> {
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'All', label: Text('All')),
-                        ButtonSegment(value: 'Theory', label: Text('Theory')),
-                        ButtonSegment(value: 'Lab', label: Text('Lab')),
-                      ],
-                      selected: {_slotFilter},
-                      onSelectionChanged: (set) =>
-                          setState(() => _slotFilter = set.first),
-                      style: SegmentedButton.styleFrom(
-                        backgroundColor: AppTheme.surfaceColor,
-                        selectedBackgroundColor: AppTheme.primaryColor
-                            .withValues(alpha: 0.2),
-                        selectedForegroundColor: AppTheme.primaryColor,
-                      ),
-                    ),
+                  child: Row(
+                    children: ['All', 'Theory', 'Lab'].map((filter) {
+                      final isSelected = _slotFilter == filter;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ChoiceChip(
+                          label: Text(
+                            filter,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? Colors.white70 : Colors.black87),
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) setState(() => _slotFilter = filter);
+                          },
+                          selectedColor: AppTheme.primaryColor,
+                          backgroundColor: isDark ? AppTheme.surfaceColor : Colors.grey.shade200,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          side: BorderSide.none,
+                          showCheckmark: false,
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
 
@@ -153,14 +170,14 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   ),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
+                      color: isDark ? AppTheme.surfaceColor : Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: TabBar(
                       isScrollable: true,
                       tabAlignment: TabAlignment.center,
                       labelColor: AppTheme.primaryColor,
-                      unselectedLabelColor: Colors.white38,
+                      unselectedLabelColor: isDark ? Colors.white38 : Colors.black45,
                       indicatorColor: AppTheme.primaryColor,
                       indicatorPadding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -213,17 +230,21 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       final finalSlots = _mergeLabSlots(sortedSlots);
 
                       if (finalSlots.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Text(
                             'No classes for this filter',
-                            style: TextStyle(color: Colors.white38),
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.white38
+                                  : Colors.black38,
+                            ),
                           ),
                         );
                       }
                       return RefreshIndicator(
                         onRefresh: () => provider.fetchTimetable(force: true),
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           itemCount: finalSlots.length,
                           itemBuilder: (ctx, i) =>
                               _SlotCard(slot: finalSlots[i]),
@@ -233,7 +254,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   ),
                 ),
               ] else ...[
-                Expanded(child: _buildEmptyOrLoading(provider)),
+                Expanded(child: _buildEmptyOrLoading(context, provider)),
               ],
             ],
           ),
@@ -276,7 +297,8 @@ class _TimetableScreenState extends State<TimetableScreen> {
     return merged;
   }
 
-  Widget _buildEmptyOrLoading(VtopDataProvider provider) {
+  Widget _buildEmptyOrLoading(BuildContext context, VtopDataProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -289,7 +311,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
             const SizedBox(height: 12),
             Text(
               provider.error!,
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -306,11 +330,14 @@ class _TimetableScreenState extends State<TimetableScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.calendar_month_outlined, color: Colors.white30, size: 64),
+          Icon(Icons.calendar_month_outlined,
+              color: isDark ? Colors.white30 : Colors.black26, size: 64),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No timetable data',
-            style: TextStyle(color: Colors.white54),
+            style: TextStyle(
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
@@ -341,10 +368,10 @@ class _SlotCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border(left: BorderSide(color: accentColor, width: 5)),
+          border: Border(left: BorderSide(color: accentColor, width: 4)),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -358,6 +385,7 @@ class _SlotCard extends StatelessWidget {
                     style: TextStyle(
                       color: accentColor,
                       fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
                   ),
                   Container(
@@ -385,7 +413,7 @@ class _SlotCard extends StatelessWidget {
                 slot.name.isNotEmpty ? slot.name : slot.courseCode,
                 style: TextStyle(
                   color: Theme.of(context).textTheme.displayLarge?.color,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),

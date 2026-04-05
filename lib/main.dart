@@ -18,20 +18,25 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProxyProvider<AuthProvider, VtopDataProvider>(
-            create: (context) =>
-                VtopDataProvider(context.read<AuthProvider>().apiService),
+            create: (context) {
+              final auth = context.read<AuthProvider>();
+              return VtopDataProvider(auth.apiService, auth.activeRegNoSync);
+            },
             update: (context, auth, previous) {
-              final provider = previous ?? VtopDataProvider(auth.apiService);
-              if (auth.isAuthenticated) {
-                // On every login or account switch, we want fresh data
-                // We can check if the current data belongs to the new user
-                // but a simple reset is safer for now as per requirements.
-                provider.initializePreferences();
-                provider.fetchSemesters();
-              } else {
-                provider.resetState();
+              final newRegNo = auth.activeRegNoSync;
+              final oldRegNo = previous?.currentRegNo;
+
+              if (auth.isAuthenticated && newRegNo != null && newRegNo != oldRegNo) {
+                // Account switched or first login — create fresh provider with new regNo
+                // The new provider will pre-load from cache in its constructor
+                return VtopDataProvider(auth.apiService, newRegNo);
               }
-              return provider;
+
+              if (!auth.isAuthenticated) {
+                previous?.resetState();
+              }
+
+              return previous ?? VtopDataProvider(auth.apiService, null);
             },
           ),
         ],
@@ -126,12 +131,22 @@ class _VitApSmartHubAppState extends State<VitApSmartHubApp> {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, _) {
         return MaterialApp(
-          title: 'VIT AP Smart Hub',
+          title: 'Smart Hub',
           themeMode: themeProvider.themeMode,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           home: Consumer<AuthProvider>(
             builder: (context, auth, child) {
+              if (!auth.isInitialized) {
+                return const Scaffold(
+                  backgroundColor: Color(0xFF121212),
+                  body: Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                );
+              }
               if (auth.isAuthenticated) {
                 return const HomeScreen();
               }

@@ -35,7 +35,11 @@ class _MarksScreenState extends State<MarksScreen> {
   }
 
   void _selectCurrentSemester(VtopDataProvider p) {
-    if (p.semesterData != null && p.semesterData!.semesters.isNotEmpty) {
+    if (p.defaultSemesterId != null) {
+      if (p.selectedSemesterId == null) {
+        p.setSelectedSemester(p.defaultSemesterId!);
+      }
+    } else if (p.semesterData != null && p.semesterData!.semesters.isNotEmpty) {
       if (p.selectedSemesterId == null) {
         p.setSelectedSemester(p.semesterData!.semesters.first.id);
       }
@@ -98,7 +102,11 @@ class _MarksScreenState extends State<MarksScreen> {
             const SizedBox(height: 12),
             Text(
               provider.error!,
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : Colors.black54,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -118,11 +126,19 @@ class _MarksScreenState extends State<MarksScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.score_outlined, color: Colors.white30, size: 64),
+            Icon(Icons.score_outlined,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white30
+                    : Colors.black26,
+                size: 64),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No marks data',
-              style: TextStyle(color: Colors.white54),
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white54
+                    : Colors.black45,
+              ),
             ),
             const SizedBox(height: 12),
             FilledButton.icon(

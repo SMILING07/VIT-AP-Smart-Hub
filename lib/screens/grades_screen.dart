@@ -13,6 +13,8 @@ class GradesScreen extends StatefulWidget {
 }
 
 class _GradesScreenState extends State<GradesScreen> {
+  String? _localSemesterId;
+
   @override
   void initState() {
     super.initState();
@@ -23,22 +25,17 @@ class _GradesScreenState extends State<GradesScreen> {
     final p = context.read<VtopDataProvider>();
     if (p.semesterData == null) {
       p.fetchSemesters().then((_) {
-        _selectPreviousSemester(p);
-        p.fetchGradeView();
+        _localSemesterId ??= p.previousSemesterId ?? p.defaultSemesterId;
+        if (_localSemesterId != null) {
+          p.fetchGradeView(semId: _localSemesterId);
+        }
       });
     } else {
-      _selectPreviousSemester(p);
-      if (p.gradeViewData == null) {
-        p.fetchGradeView();
-      }
-    }
-  }
-
-  void _selectPreviousSemester(VtopDataProvider p) {
-    if (p.semesterData != null && p.semesterData!.semesters.length > 1) {
-      // If we haven't manually changed semester, or we are on the latest one
-      if (p.selectedSemesterId == p.semesterData!.semesters.first.id) {
-        p.setSelectedSemester(p.semesterData!.semesters[1].id);
+      _localSemesterId ??= p.previousSemesterId ?? p.defaultSemesterId;
+      if (p.gradeViewData == null || p.gradeViewData?.semesterId != _localSemesterId) {
+        if (_localSemesterId != null) {
+          p.fetchGradeView(semId: _localSemesterId);
+        }
       }
     }
   }
@@ -58,10 +55,15 @@ class _GradesScreenState extends State<GradesScreen> {
         builder: (context, provider, _) {
           return Column(
             children: [
-              const SemesterSelectorWidget(),
-              if (provider.selectedSemesterId != null &&
-                  provider.gradeViewData?.semesterId !=
-                      provider.selectedSemesterId)
+              SemesterSelectorWidget(
+                selectedSemId: _localSemesterId,
+                onChanged: (semId) {
+                  setState(() => _localSemesterId = semId);
+                  provider.fetchGradeView(semId: semId);
+                },
+              ),
+              if (_localSemesterId != null &&
+                  provider.gradeViewData?.semesterId != _localSemesterId)
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -70,7 +72,7 @@ class _GradesScreenState extends State<GradesScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: () => provider.fetchGradeView(),
+                      onPressed: () => provider.fetchGradeView(semId: _localSemesterId),
                       icon: const Icon(Icons.refresh, size: 16),
                       label: const Text('Load Grades'),
                       style: FilledButton.styleFrom(
@@ -105,7 +107,7 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: () => provider.fetchGradeView(),
+              onPressed: () => provider.fetchGradeView(semId: _localSemesterId),
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),
@@ -128,7 +130,7 @@ class _GradesScreenState extends State<GradesScreen> {
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
-              onPressed: () => provider.fetchGradeView(),
+              onPressed: () => provider.fetchGradeView(semId: _localSemesterId),
               icon: const Icon(Icons.download),
               label: const Text('Fetch Grades'),
             ),
@@ -188,7 +190,10 @@ class _GradeCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => GradeDetailPage(course: course),
+                builder: (_) => GradeDetailPage(
+                  course: course,
+                  semesterId: context.read<_GradesScreenState>()._localSemesterId,
+                ),
               ),
             );
           }
@@ -288,7 +293,8 @@ class _GradeCard extends StatelessWidget {
 // ─── Grade Detail Page ───────────────────────────────────────────────────────
 class GradeDetailPage extends StatefulWidget {
   final GradeCourseRecord course;
-  const GradeDetailPage({super.key, required this.course});
+  final String? semesterId;
+  const GradeDetailPage({super.key, required this.course, this.semesterId});
 
   @override
   State<GradeDetailPage> createState() => _GradeDetailPageState();
@@ -301,6 +307,7 @@ class _GradeDetailPageState extends State<GradeDetailPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VtopDataProvider>().fetchGradeDetails(
         widget.course.courseId,
+        semId: widget.semesterId,
       );
     });
   }
@@ -321,12 +328,12 @@ class _GradeDetailPageState extends State<GradeDetailPage> {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          final data = provider.gradeDetailsData;
+          final data = provider.getGradeDetails(widget.course.courseId);
           if (data == null) {
             return Center(
               child: FilledButton(
                 onPressed: () =>
-                    provider.fetchGradeDetails(widget.course.courseId),
+                    provider.fetchGradeDetails(widget.course.courseId, semId: widget.semesterId),
                 child: const Text('Load Details'),
               ),
             );

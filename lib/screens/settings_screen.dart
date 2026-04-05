@@ -57,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Switched to $regNo seamlessly!')),
         );
+        Navigator.pop(context); // Return to Dashboard for fresh reload
       }
     } else {
       if (mounted) {
@@ -86,47 +87,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final pwdCtrl = TextEditingController();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.surfaceColor,
-        title: const Text('Add Account', style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: regCtrl,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(labelText: 'Registration No'),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        final textColor = isDark ? Colors.white : AppTheme.lightTextColor;
+        return AlertDialog(
+          backgroundColor: isDark ? AppTheme.surfaceColor : Colors.white,
+          title: Text('Add Account', style: TextStyle(color: textColor)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: regCtrl,
+                style: TextStyle(color: textColor),
+                decoration: const InputDecoration(labelText: 'Registration No'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: pwdCtrl,
+                obscureText: true,
+                style: TextStyle(color: textColor),
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: pwdCtrl,
-              obscureText: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(labelText: 'Password'),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await _switchAccount(regCtrl.text.trim(), pwdCtrl.text.trim());
+              },
+              child: const Text('Add & Switch'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await _switchAccount(regCtrl.text.trim(), pwdCtrl.text.trim());
-            },
-            child: const Text('Add & Switch'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : AppTheme.lightTextColor;
+    final secondaryTextColor = isDark ? Colors.white54 : AppTheme.lightTextSecondaryColor;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: isDark ? AppTheme.backgroundColor : AppTheme.lightBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Settings',
@@ -135,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white70 : Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -305,11 +314,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   Text(
                                     isDark ? 'Dark Mode' : 'Light Mode',
                                     style: TextStyle(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium?.color ??
-                                          Colors.white,
+                                      color: textColor,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -380,9 +385,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 8),
                           if (_accounts.isEmpty)
-                            const Text(
+                            Text(
                               'No accounts saved.',
-                              style: TextStyle(color: Colors.white54),
+                              style: TextStyle(color: secondaryTextColor),
                             ),
                           ..._accounts.map((acc) {
                             final isAct = acc['regNo'] == _activeRegNo;
@@ -393,7 +398,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     ? AppTheme.primaryColor.withValues(
                                         alpha: 0.15,
                                       )
-                                    : AppTheme.surfaceColor,
+                                    : (isDark ? AppTheme.surfaceColor : Colors.grey.shade100),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: isAct
@@ -405,17 +410,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 leading: CircleAvatar(
                                   backgroundColor: isAct
                                       ? AppTheme.primaryColor
-                                      : Colors.white12,
-                                  child: const Icon(
+                                      : (isDark ? Colors.white12 : Colors.black12),
+                                  child: Icon(
                                     Icons.person,
-                                    color: Colors.white,
+                                    color: isAct ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
                                     size: 20,
                                   ),
                                 ),
                                 title: Text(
                                   acc['regNo']!,
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: textColor,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -424,7 +429,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   style: TextStyle(
                                     color: isAct
                                         ? AppTheme.primaryColor
-                                        : Colors.white54,
+                                        : secondaryTextColor,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -433,9 +438,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   acc['password']!,
                                 ),
                                 trailing: IconButton(
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.delete_outline,
-                                    color: AppTheme.errorColor,
+                                    color: isAct ? Colors.white70 : AppTheme.errorColor,
                                     size: 20,
                                   ),
                                   onPressed: () =>

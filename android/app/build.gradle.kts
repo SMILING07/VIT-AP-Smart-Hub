@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.vit_ap_smart_hub"
     compileSdk = 36
-    ndkVersion = "29.0.14206865"
+    ndkVersion = "30.0.14904198"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -31,13 +31,15 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
 }
-
 flutter {
     source = "../.."
 }

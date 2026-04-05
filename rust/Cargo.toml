@@ -24,7 +24,8 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "mul
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 
 [profile.release]
-opt-level = 2        # Slightly lower optimization for stability
-lto = false          # Disable Link-Time Optimization (the biggest memory hog)
-codegen-units = 1    # Compile in a single thread to prevent stack overruns
+opt-level = "z"      # Optimize for size
+lto = true           # Enable Link-Time Optimization
+codegen-units = 1    # Compile in a single thread for better optimization
 panic = 'abort'      # Reduces binary complexity
+strip = true         # Strips symbols from the binary

@@ -24,9 +24,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   void _load() {
     final p = context.read<VtopDataProvider>();
     if (p.semesterData == null) {
-      p.fetchSemesters().then((_) => p.fetchAttendance());
-    } else if (p.attendanceData == null) {
-      p.fetchAttendance();
+      p.fetchSemesters().then((_) {
+        if (p.defaultSemesterId != null) {
+          p.setSelectedSemester(p.defaultSemesterId!);
+        }
+        p.fetchAttendance();
+      });
+    } else {
+      if (p.selectedSemesterId == null && p.defaultSemesterId != null) {
+        p.setSelectedSemester(p.defaultSemesterId!);
+      }
+      if (p.attendanceData == null) {
+        p.fetchAttendance();
+      }
     }
   }
 
@@ -42,25 +52,37 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
-              child: SizedBox(
-                width: double.infinity,
-                child: SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'All', label: Text('All')),
-                    ButtonSegment(value: 'Theory', label: Text('Theory')),
-                    ButtonSegment(value: 'Lab', label: Text('Lab')),
-                  ],
-                  selected: {_selectedFilter},
-                  onSelectionChanged: (set) =>
-                      setState(() => _selectedFilter = set.first),
-                  style: SegmentedButton.styleFrom(
-                    backgroundColor: AppTheme.surfaceColor,
-                    selectedBackgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.2,
+              child: Row(
+                children: ['All', 'Theory', 'Lab'].map((filter) {
+                  final isDark = Theme.of(context).brightness == Brightness.dark;
+                  final isSelected = _selectedFilter == filter;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      label: Text(
+                        filter,
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : (isDark ? Colors.white70 : Colors.black87),
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) setState(() => _selectedFilter = filter);
+                      },
+                      selectedColor: AppTheme.primaryColor,
+                      backgroundColor: isDark ? AppTheme.surfaceColor : Colors.grey.shade200,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      side: BorderSide.none,
+                      showCheckmark: false,
                     ),
-                    selectedForegroundColor: AppTheme.primaryColor,
-                  ),
-                ),
+                  );
+                }).toList(),
               ),
             ),
             Expanded(child: _buildContent(provider)),
@@ -71,6 +93,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Widget _buildContent(VtopDataProvider provider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -83,7 +106,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             const SizedBox(height: 12),
             Text(
               provider.error!,
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark) ? Colors.white70 : Colors.black54),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -125,10 +148,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     }).toList();
 
     if (records.isEmpty && rawRecords.isNotEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'No courses match this filter',
-          style: TextStyle(color: Colors.white38),
+          style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark) ? Colors.white38 : Colors.black38),
         ),
       );
     }
@@ -138,11 +161,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.school_outlined, color: Colors.white30, size: 64),
+            Icon(Icons.school_outlined, color: isDark ? Colors.white30 : Colors.black26, size: 64),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No attendance data',
-              style: TextStyle(color: Colors.white54),
+              style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark) ? Colors.white54 : Colors.black45),
             ),
             const SizedBox(height: 12),
             FilledButton.icon(
@@ -329,20 +352,21 @@ class _FullAttendancePageState extends State<FullAttendancePage> {
       ),
       body: Consumer<VtopDataProvider>(
         builder: (context, provider, _) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          final data = provider.fullAttendanceData;
+          final data = provider.getFullAttendance(widget.record.courseId, widget.record.courseType);
           if (data == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.info_outline, color: Colors.white30, size: 48),
+                  Icon(Icons.info_outline, color: isDark ? Colors.white30 : Colors.black26, size: 48),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'No detail data',
-                    style: TextStyle(color: Colors.white54),
+                    style: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
                   ),
                   const SizedBox(height: 12),
                   FilledButton(
@@ -370,7 +394,7 @@ class _FullAttendancePageState extends State<FullAttendancePage> {
             children: [
               Text(
                 widget.record.courseName,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14),
               ),
               const SizedBox(height: 12),
               Row(
@@ -447,6 +471,7 @@ class _FullAttRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusLower = record.status.toLowerCase();
     final isPresent = statusLower.contains('present');
     final isOD = statusLower.contains('od') || statusLower.contains('on duty');
@@ -459,9 +484,16 @@ class _FullAttRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isDark ? AppTheme.surfaceColor : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border(left: BorderSide(color: statusColor, width: 4)),
+        boxShadow: isDark ? [] : [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -471,15 +503,15 @@ class _FullAttRow extends StatelessWidget {
               children: [
                 Text(
                   record.date,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${record.slot}  ·  ${record.dayTime}',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12),
                 ),
               ],
             ),

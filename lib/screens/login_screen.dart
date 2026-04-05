@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_theme.dart';
 import 'home_screen.dart';
+import 'vtop_webview_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _regNoController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -43,9 +45,14 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else if (mounted && authProvider.error != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(authProvider.error!)));
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.error!),
+          backgroundColor: AppTheme.errorColor,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -61,7 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Card(
-                color: AppTheme.surfaceColor.withValues(alpha: 0.9),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.surfaceColor.withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.95),
                 elevation: 12,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -82,15 +91,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'Smart Hub',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(color: Colors.white70),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white70
+                              : AppTheme.lightTextSecondaryColor,
+                        ),
                       ),
                       const SizedBox(height: 48),
 
                       TextField(
                         controller: _regNoController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : AppTheme.lightTextColor,
+                        ),
                         decoration: const InputDecoration(
                           labelText: 'Registration Number',
                           prefixIcon: Icon(
@@ -103,13 +118,33 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       TextField(
                         controller: _passwordController,
-                        style: const TextStyle(color: Colors.white),
-                        obscureText: true,
-                        decoration: const InputDecoration(
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : AppTheme.lightTextColor,
+                        ),
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.lock_outline,
                             color: AppTheme.primaryColor,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white70
+                                  : AppTheme.lightTextSecondaryColor,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
                           ),
                         ),
                       ),
@@ -136,6 +171,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                         ),
                       ),
+
+                      if (authProvider.failedAttempts >= 3 && !authProvider.isLoading)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 24.0),
+                          child: Column(
+                            children: [
+                              const Text(
+                                "Too many failed attempts?",
+                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                              ),
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const VtopWebviewScreen()),
+                                  );
+                                },
+                                icon: const Icon(Icons.open_in_browser, size: 18),
+                                label: const Text("Verify in VTOP"),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),

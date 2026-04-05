@@ -5,6 +5,9 @@ allprojects {
     }
 }
 
+val ndkVersion: String by project
+rootProject.extra.set("ndkVersion", "30.0.14904198")
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

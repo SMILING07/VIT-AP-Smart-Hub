@@ -20,9 +20,8 @@ class VtopApiService {
   /// Attempts to login using the Rust-based VtopClient
   Future<bool> login(String regNo, String password) async {
     try {
-      if (_client == null) {
-        initClient(regNo, password);
-      }
+      // Re-initialize client for new credentials to avoid session overlap
+      initClient(regNo, password);
       await vtopClientLogin(client: _client!);
       return await fetchIsAuth(client: _client!);
     } catch (e) {
