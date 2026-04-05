@@ -39,7 +39,7 @@ dependencies:
   html: ^0.15.6
   flutter_secure_storage: ^10.0.0
   google_fonts: ^8.0.2
-  file_picker: ^10.3.10
+  file_picker: ^11.0.0
   flutter_inappwebview: ^6.1.5
   dio: ^5.9.2
   path_provider: ^2.1.5
@@ -48,7 +48,7 @@ dependencies:
   permission_handler: ^12.0.1
   spreadsheet_decoder: ^2.3.0
   image_picker: ^1.1.2
-  image_cropper: ^9.1.0
+  image_cropper: ^12.1.1
   rust_lib_vit_ap_smart_hub:
     path: rust_builder
   flutter_rust_bridge: 2.12.0
