@@ -295,24 +295,34 @@ class UpdateService {
   }
 
   bool _isVersionLower(String current, String target) {
-    final cleanCurrent = current.split('+')[0].replaceAll(RegExp(r'[vV]'), '');
-    final cleanTarget = target.split('+')[0].replaceAll(RegExp(r'[vV]'), '');
+    // Split into version and build number: "1.2.3+4" -> ["1.2.3", "4"]
+    final currentParts = current.split('+');
+    final targetParts = target.split('+');
 
-    final curParts = cleanCurrent
-        .split('.')
-        .map((e) => int.tryParse(e) ?? 0)
-        .toList();
-    final targetParts = cleanTarget
-        .split('.')
-        .map((e) => int.tryParse(e) ?? 0)
-        .toList();
+    final cleanCurrentVer =
+        currentParts[0].replaceAll(RegExp(r'[vV]'), '').trim();
+    final cleanTargetVer =
+        targetParts[0].replaceAll(RegExp(r'[vV]'), '').trim();
 
+    final curVerList =
+        cleanCurrentVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    final targetVerList =
+        cleanTargetVer.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+    // Compare semantic version parts (major.minor.patch)
     for (int i = 0; i < 3; i++) {
-      final c = i < curParts.length ? curParts[i] : 0;
-      final t = i < targetParts.length ? targetParts[i] : 0;
+      final c = i < curVerList.length ? curVerList[i] : 0;
+      final t = i < targetVerList.length ? targetVerList[i] : 0;
       if (c < t) return true;
       if (c > t) return false;
     }
-    return false;
+
+    // If semantic versions are identical, compare build numbers
+    final int curBuild =
+        (currentParts.length > 1) ? (int.tryParse(currentParts[1]) ?? 0) : 0;
+    final int targetBuild =
+        (targetParts.length > 1) ? (int.tryParse(targetParts[1]) ?? 0) : 0;
+
+    return curBuild < targetBuild;
   }
 }

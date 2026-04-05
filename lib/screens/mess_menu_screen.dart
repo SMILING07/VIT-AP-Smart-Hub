@@ -599,8 +599,7 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
     ];
     final currentDayStr = weekdays[now.weekday - 1];
 
-    // Wait, dart weekday: 1 = Monday to 7 = Sunday
-    // Wait, dart weekday: 1 = Monday to 7 = Sunday
+    // Dart weekday: 1 = Monday to 7 = Sunday
     final List<String> correctDisplayWeekdays = [
       "Monday",
       "Tuesday",
@@ -658,22 +657,31 @@ class _MessMenuScreenState extends State<MessMenuScreen> {
     for (int i = startRowIndex; i < _menuData.length; i++) {
       var row = _menuData[i];
       if (row.isNotEmpty && row.first != null) {
-        String firstCell = row.first.toString().toUpperCase();
+        String firstCell = row.first.toString().trim().toUpperCase();
+        if (firstCell.isEmpty) continue;
 
-        bool hasDigits = firstCell.contains(RegExp(r'\d'));
+        // Try exact match with weekday first
+        if (firstCell == currentDayStr || firstCell == currentShortDayStr) {
+          todayRow = row;
+          break;
+        }
 
-        if (hasDigits) {
+        // Try date match if it contains digits
+        if (firstCell.contains(RegExp(r'\d'))) {
           String dateStr = now.day.toString();
-          if (RegExp(r'\b' + dateStr + r'\b').hasMatch(firstCell)) {
+          // Use a more robust regex to find the date as a standalone number or part of a date string
+          // Matches "05", "5th", "5-Apr", "5/4", etc.
+          final dateRegex = RegExp(r'(^|\D)0?' + dateStr + r'(\D|$)');
+          if (dateRegex.hasMatch(firstCell)) {
             todayRow = row;
             break;
           }
-        } else {
-          if (firstCell.contains(currentDayStr) ||
-              firstCell.contains(currentShortDayStr)) {
-            todayRow = row;
-            break;
-          }
+        }
+        
+        // Fallback: contains weekday
+        if (firstCell.contains(currentDayStr) || firstCell.contains(currentShortDayStr)) {
+          todayRow = row;
+          break;
         }
       }
     }

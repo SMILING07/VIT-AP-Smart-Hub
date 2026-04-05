@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.vit_ap_smart_hub"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "30.0.14904198"
+    ndkVersion = "29.0.14206865"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

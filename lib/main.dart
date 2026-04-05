@@ -41,8 +41,14 @@ Future<void> main() async {
   } catch (e, stack) {
     debugPrint('FAILED TO START RUST LIB: $e');
     debugPrint(stack.toString());
+    
+    // Simple retry tracker
+    _retryCount++;
+
     runApp(
       MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData.dark(),
         home: Scaffold(
           backgroundColor: const Color(0xFF121212),
           body: Center(
@@ -57,7 +63,7 @@ Future<void> main() async {
                     'Initialization Error',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -67,10 +73,24 @@ Future<void> main() async {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white70),
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
+                  if (_retryCount > 1)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Retry Attempt: $_retryCount',
+                        style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                      ),
+                    ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
                     onPressed: () => main(),
-                    child: const Text('Try Again'),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Try Again'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.withValues(alpha: 0.2),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
                   ),
                 ],
               ),
@@ -81,6 +101,8 @@ Future<void> main() async {
     );
   }
 }
+
+int _retryCount = 0;
 
 class VitApSmartHubApp extends StatefulWidget {
   const VitApSmartHubApp({super.key});
